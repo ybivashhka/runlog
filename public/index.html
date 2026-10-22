@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>RUNLOG — твой спортивный дневник</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <aside class="sidebar">
+      <a class="brand" href="/">RUN<span>LOG</span><i>↗</i></a>
+      <div class="rail-label">ЛИЧНЫЙ ДНЕВНИК</div>
+      <nav>
+        <button class="nav active" data-view="dashboard">
+          ↗ <span>Обзор</span></button
+        ><button class="nav" data-view="photos">
+          ◫ <span>Фото формы</span></button
+        ><button class="nav" data-view="learning">
+          ⌘ <span>Архитектура</span>
+        </button>
+      </nav>
+      <div class="sidebar-bottom">
+        <span class="dot"></span> Данные на твоём компьютере
+        <p>Маленькие шаги.<br />Видимая история.</p>
+        <span class="version">ЛИЧНЫЙ ПРОЕКТ / V.01</span>
+      </div>
+    </aside>
+    <main>
+      <header>
+        <span class="eyebrow" id="today-label">ТВОЙ СПОРТИВНЫЙ ДНЕВНИК</span>
+        <div class="header-right">
+          <span id="codex-status" class="connection">Проверяем Codex…</span
+          ><a href="/api/export" download="runlog-export.json" class="text-link"
+            >Экспорт ↗</a
+          >
+        </div>
+      </header>
+      <section id="demo-banner" class="demo-banner" hidden>
+        Пример: все тренировки вымышленные и не сохранены в твоём
+        дневнике.<button id="exit-demo">Вернуться к моим данным ↗</button>
+      </section>
+      <section id="dashboard" class="view">
+        <div class="page-title">
+          <div>
+            <div class="eyebrow">ТВОЙ РИТМ</div>
+            <h1>Прогресс начинается<br />с первой записи<span>.</span></h1>
+            <p>Собирай тренировки. Смотри на динамику. Замечай изменения.</p>
+          </div>
+          <button class="button primary" id="add-workout">
+            ＋ Добавить тренировку
+          </button>
+        </div>
+        <div class="stats">
+          <article>
+            <span>Тренировки</span><strong id="stat-count">0</strong
+            ><small>Все сохранённые занятия</small>
+          </article>
+          <article>
+            <span>Дистанция бега</span
+            ><strong id="stat-km">0 <em>км</em></strong
+            ><small>Сумма по твоей истории</small>
+          </article>
+          <article>
+            <span>Средний темп бега</span><strong id="stat-pace">—</strong
+            ><small>Общее время / общая дистанция</small>
+          </article>
+          <article class="accent-card">
+            <span>Твоя отправная точка</span
+            ><strong id="stat-first">Сегодня</strong
+            ><small>Сравнивай себя с собой</small><i>↗</i>
+          </article>
+        </div>
+        <div class="content-grid">
+          <div class="main-column">
+            <article class="panel chart-panel">
+              <div class="section-heading">
+                <div>
+                  <span class="eyebrow">ИСТОРИЯ БЕГА</span>
+                  <h2>Километры по неделям</h2>
+                </div>
+                <span class="badge">км / неделя</span>
+              </div>
+              <div id="chart" class="chart"></div>
+              <p class="caption">
+                Дистанция помогает видеть регулярность. Больше километров само
+                по себе не означает лучшую форму.
+              </p>
+            </article>
+            <article class="panel">
+              <div class="section-heading">
+                <div>
+                  <span class="eyebrow">ШАГ ЗА ШАГОМ</span>
+                  <h2>Последние тренировки</h2>
+                </div>
+                <button class="text-button" id="demo-button">
+                  Посмотреть пример ↗
+                </button>
+              </div>
+              <div id="workout-list"></div>
+            </article>
+          </div>
+          <aside class="agent-panel">
+            <div class="agent-mark">✳</div>
+            <span class="eyebrow">ТВОЙ АГЕНТ / CODEX</span>
+            <h2>У истории есть<br />что рассказать.</h2>
+            <p class="agent-intro">
+              Спроси о тренировках. Агент прочитает дневник и вызовет
+              инструменты расчёта.
+            </p>
+            <div class="suggestions">
+              <button data-question="Что есть в моей истории тренировок?">
+                Что уже есть в дневнике? ↗</button
+              ><button
+                data-question="Покажи динамику моих пробежек и объясни ограничения сравнения."
+              >
+                Как меняются пробежки? ↗
+              </button>
+            </div>
+            <div
+              id="agent-messages"
+              class="agent-messages"
+              aria-live="polite"
+            ></div>
+            <form id="chat-form">
+              <label class="sr-only" for="chat-input">Вопрос агенту</label
+              ><textarea
+                id="chat-input"
+                placeholder="Например: сравни мои пробежки…"
+                rows="3"
+                maxlength="6000"
+              ></textarea
+              ><button class="button lime" id="chat-send">
+                Спросить агента ↗
+              </button>
+            </form>
+            <details class="trace-box">
+              <summary>
+                Что делает агент <span id="trace-count">0 шагов</span>
+              </summary>
+              <ol id="agent-trace"></ol>
+            </details>
+            <p class="agent-footnote">
+              По запросу модели передаются текст и нужные данные. Распознаваемый
+              снимок также отправляется в Codex.
+            </p>
+          </aside>
+        </div>
+      </section>
+      <section id="photos" class="view" hidden>
+        <div class="page-title">
+          <div>
+            <div class="eyebrow">ВИЗУАЛЬНЫЙ ДНЕВНИК</div>
+            <h1>Изменения<br />в твоём темпе<span>.</span></h1>
+            <p>Снимки по датам. Измерения — только те, что ты добавил сам.</p>
+          </div>
+          <button class="button primary" id="add-photo">
+            ＋ Добавить фото
+          </button>
+        </div>
+        <article class="panel">
+          <h2>Сравнение по датам</h2>
+          <p class="caption">
+            Для удобства сравнения используй похожие свет, позу и ракурс. Фото
+            формы сохраняются локально и не отправляются модели.
+          </p>
+          <div id="photo-gallery" class="photo-gallery"></div>
+        </article>
+      </section>
+      <section id="learning" class="view" hidden>
+        <div class="page-title">
+          <div>
+            <div class="eyebrow">АРХИТЕКТУРА ПРИЛОЖЕНИЯ</div>
+            <h1>Как работает<br />твой агент<span>.</span></h1>
+            <p>
+              Цель → решение модели → инструмент → результат → следующий шаг.
+            </p>
+          </div>
+        </div>
+        <div class="learning-grid">
+          <article class="panel">
+            <span class="step-no">01 / ПОСТАНОВКА</span>
+            <h2>Задача и ограничения</h2>
+            <p>
+              Сохранить тренировку со снимка или объяснить историю. Модель не
+              придумывает пропущенные показатели и не делает медицинских
+              выводов.
+            </p>
+          </article>
+          <article class="panel">
+            <span class="step-no">02 / МОДЕЛЬ</span>
+            <h2>Codex как исполнитель</h2>
+            <p>
+              Локальный сервер запускает <code>codex exec</code>. Текст и снимок
+              обрабатывает облачная модель; приложение получает
+              структурированный JSON.
+            </p>
+          </article>
+          <article class="panel">
+            <span class="step-no">03 / ИНСТРУМЕНТЫ</span>
+            <h2>Действие выбирает модель</h2>
+            <p>
+              <code>list_workouts</code> читает историю,
+              <code>get_progress</code> считает динамику,
+              <code>propose_workout</code> готовит черновик. Их выполняет
+              сервер.
+            </p>
+          </article>
+          <article class="panel">
+            <span class="step-no">04 / ПАМЯТЬ</span>
+            <h2>История живёт в SQLite</h2>
+            <p>
+              Модель получает нужные записи через инструмент. Контекст запроса
+              временный, а сохранённые тренировки остаются после перезапуска.
+            </p>
+          </article>
+          <article class="panel">
+            <span class="step-no">05 / ПРОВЕРКА</span>
+            <h2>Модель предлагает, ты проверяешь</h2>
+            <p>
+              Сервер проверяет дату, диапазоны и дубли. Пользователь исправляет
+              распознавание и подтверждает сохранение. У агента максимум четыре
+              шага.
+            </p>
+          </article>
+          <article class="panel">
+            <span class="step-no">06 / ГРАНИЦА</span>
+            <h2>Где агент, а где автоматизация?</h2>
+            <p>
+              Загрузка файла, запись в БД и график выполняются по правилам.
+              Агент выбирает, читать ли историю, считать ли динамику, уточнить
+              запрос или подготовить запись.
+            </p>
+          </article>
+        </div>
+        <article class="panel interview">
+          <span class="eyebrow">НАДЁЖНОСТЬ</span>
+          <h2>Проверки и ограничения</h2>
+          <p>
+            Сервер проверяет даты, диапазоны значений и дубли. Модель получает
+            ограниченный набор действий; повторный вызов уже выполненного
+            инструмента останавливает цикл. Распознанные показатели сохраняются
+            только после проверки пользователем.
+          </p>
+          <p class="caption">
+            Инструменты реализованы функциями приложения. MCP, синхронизация с
+            часами и работа нескольких пользователей в этой версии не
+            реализованы.
+          </p>
+        </article>
+      </section>
+      <footer>
+        <span>RUNLOG / МАЛЕНЬКИЕ ШАГИ, ВИДИМЫЕ ИЗМЕНЕНИЯ</span
+        ><span>Локальный прототип · SQLite + Codex CLI</span>
+      </footer>
+    </main>
+    <dialog id="workout-dialog">
+      <form id="workout-form">
+        <div class="dialog-heading">
+          <div>
+            <span class="eyebrow">НОВАЯ ЗАПИСЬ</span>
+            <h2>Твоя тренировка</h2>
+          </div>
+          <button
+            type="button"
+            class="icon-button"
+            data-close="workout-dialog"
+            aria-label="Закрыть"
+          >
+            ×
+          </button>
+        </div>
+        <div class="dialog-grid">
+          <div>
+            <label class="dropzone" id="workout-drop"
+              ><input
+                type="file"
+                id="workout-image"
+                accept="image/png,image/jpeg,image/webp" /><span
+                class="upload-icon"
+                >↥</span
+              ><strong>Добавь скриншот тренировки</strong
+              ><span>PNG, JPG или WebP · до 8 МБ</span
+              ><img
+                id="workout-preview"
+                hidden
+                alt="Снимок тренировки" /></label
+            ><label class="field"
+              >Или опиши тренировку<textarea
+                id="workout-text"
+                rows="3"
+                placeholder="Сегодня пробежал 3 км за 23 минуты"
+              ></textarea></label
+            ><button type="button" class="button primary full" id="recognize">
+              Распознать с Codex ↗
+            </button>
+            <p class="caption">
+              Снимок и описание отправятся модели. Можно сразу заполнить поля
+              вручную.
+            </p>
+            <div id="recognition-status" role="status"></div>
+          </div>
+          <div class="workout-fields">
+            <div class="field-row">
+              <label class="field"
+                >Дата<input type="date" id="w-date" required /></label
+              ><label class="field"
+                >Тип<select id="w-sport">
+                  <option value="run">Бег</option>
+                  <option value="walk">Ходьба</option>
+                  <option value="cycle">Велосипед</option>
+                  <option value="strength">Силовая</option>
+                  <option value="other">Другое</option>
+                </select></label
+              >
+            </div>
+            <label class="field"
+              >Дистанция, км<input
+                type="number"
+                step="0.01"
+                min="0.01"
+                max="1000"
+                id="w-distance"
+                placeholder="3.00"
+            /></label>
+            <div class="field-row">
+              <label class="field"
+                >Длительность, мин<input
+                  type="number"
+                  step="1"
+                  min="0"
+                  max="10080"
+                  id="w-minutes"
+                  placeholder="23" /></label
+              ><label class="field"
+                >Секунды<input
+                  type="number"
+                  min="0"
+                  max="59"
+                  step="1"
+                  id="w-seconds"
+                  placeholder="00"
+              /></label>
+            </div>
+            <label class="field"
+              >Средний пульс, уд/мин<input
+                type="number"
+                min="20"
+                max="260"
+                id="w-hr"
+                placeholder="Если известен" /></label
+            ><label class="field"
+              >Заметка<textarea
+                id="w-notes"
+                rows="2"
+                maxlength="1000"
+                placeholder="Как прошло занятие?"
+              ></textarea>
+            </label>
+            <p id="workout-error" class="error" role="alert"></p>
+            <button class="button lime full" id="save-workout">
+              Проверил — сохранить ✓
+            </button>
+          </div>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="photo-dialog">
+      <form id="photo-form">
+        <div class="dialog-heading">
+          <div>
+            <span class="eyebrow">ФОТО ФОРМЫ</span>
+            <h2>Сохрани точку отсчёта</h2>
+          </div>
+          <button
+            type="button"
+            class="icon-button"
+            data-close="photo-dialog"
+            aria-label="Закрыть"
+          >
+            ×
+          </button>
+        </div>
+        <label class="field"
+          >Фото<input
+            id="body-image"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            required /></label
+        ><label class="field"
+          >Дата<input type="date" id="photo-date" required /></label
+        ><label class="field"
+          >Вес, кг — необязательно<input
+            type="number"
+            id="photo-weight"
+            step="0.1"
+            min="1"
+            max="500"
+            placeholder="Только измеренное значение" /></label
+        ><label class="field"
+          >Заметка<textarea
+            id="photo-notes"
+            maxlength="1000"
+            rows="2"
+          ></textarea>
+        </label>
+        <p class="caption">
+          Фото хранится на компьютере. Модель не оценивает вес или процент жира
+          по снимку.
+        </p>
+        <p id="photo-error" class="error" role="alert"></p>
+        <button class="button lime full">Сохранить фото</button>
+      </form>
+    </dialog>
+    <div id="toast" role="status" hidden></div>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
