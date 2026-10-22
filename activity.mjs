@@ -165,12 +165,15 @@ export function parseActivityImport(
     days.set(date, day);
   }
   const rows = [...days.values()].sort((a, b) => a.date.localeCompare(b.date));
+  const boundary = new Date(`${generatedAt.slice(0, 10)}T12:00:00Z`);
+  boundary.setUTCDate(boundary.getUTCDate() - 8);
   for (const row of rows) {
     if (row.steps > 200000 || row.distanceKm > 500)
       throw new Error("Сумма за день вне допустимого диапазона.");
     // The first date is a rolling-window boundary; today is still in progress.
     row.partial =
-      row.date === rows[0].date || row.date === generatedAt.slice(0, 10);
+      row.date === boundary.toISOString().slice(0, 10) ||
+      row.date === generatedAt.slice(0, 10);
     if (row.distanceKm !== null)
       row.distanceKm = Math.round(row.distanceKm * 1e6) / 1e6;
   }
