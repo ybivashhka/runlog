@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>RUNLOG — твой спортивный дневник</title>
+    <title>RUNLOG — дневник тренировок</title>
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
@@ -15,14 +15,14 @@
           ↗ <span>Обзор</span></button
         ><button class="nav" data-view="photos">
           ◫ <span>Фото формы</span></button
-        ><button class="nav" data-view="learning">
-          ⌘ <span>Архитектура</span>
+        ><button class="nav" data-view="connections">
+          ⇄ <span>Подключения</span>
         </button>
       </nav>
       <div class="sidebar-bottom">
         <span class="dot"></span> Данные на твоём компьютере
-        <p>Маленькие шаги.<br />Видимая история.</p>
-        <span class="version">ЛИЧНЫЙ ПРОЕКТ / V.01</span>
+        <p>Тренировки · Активность · Фото</p>
+        <span class="version">RUNLOG / V.02</span>
       </div>
     </aside>
     <main>
@@ -35,16 +35,14 @@
           >
         </div>
       </header>
-      <section id="demo-banner" class="demo-banner" hidden>
-        Пример: все тренировки вымышленные и не сохранены в твоём
-        дневнике.<button id="exit-demo">Вернуться к моим данным ↗</button>
-      </section>
       <section id="dashboard" class="view">
         <div class="page-title">
           <div>
-            <div class="eyebrow">ТВОЙ РИТМ</div>
-            <h1>Прогресс начинается<br />с первой записи<span>.</span></h1>
-            <p>Собирай тренировки. Смотри на динамику. Замечай изменения.</p>
+            <div class="eyebrow">ОБЗОР</div>
+            <h1>Тренировки и активность<span>.</span></h1>
+            <p>
+              История занятий, шаги с iPhone и расчёты по сохранённым данным.
+            </p>
           </div>
           <button class="button primary" id="add-workout">
             ＋ Добавить тренировку
@@ -65,11 +63,23 @@
             ><small>Общее время / общая дистанция</small>
           </article>
           <article class="accent-card">
-            <span>Твоя отправная точка</span
-            ><strong id="stat-first">Сегодня</strong
-            ><small>Сравнивай себя с собой</small><i>↗</i>
+            <span>Начало истории</span><strong id="stat-first">—</strong
+            ><small>Дата первой тренировки</small><i>↗</i>
           </article>
         </div>
+        <article class="panel activity-panel">
+          <div class="section-heading">
+            <div>
+              <span class="eyebrow">APPLE HEALTH</span>
+              <h2>Повседневная активность</h2>
+            </div>
+            <span id="sync-status" class="badge">Ожидаем синхронизацию</span>
+          </div>
+          <p id="sync-detail" class="caption">
+            Подключи RUNLOG Health Sync в разделе «Подключения».
+          </p>
+          <div id="activity-days" class="activity-days"></div>
+        </article>
         <div class="content-grid">
           <div class="main-column">
             <article class="panel chart-panel">
@@ -89,20 +99,24 @@
             <article class="panel">
               <div class="section-heading">
                 <div>
-                  <span class="eyebrow">ШАГ ЗА ШАГОМ</span>
+                  <span class="eyebrow">ДНЕВНИК</span>
                   <h2>Последние тренировки</h2>
                 </div>
-                <button class="text-button" id="demo-button">
-                  Посмотреть пример ↗
-                </button>
+                <label class="text-link import-label"
+                  >Импорт XML / JSON ↥<input
+                    id="import-file"
+                    type="file"
+                    accept=".xml,.json"
+                    hidden
+                /></label>
               </div>
               <div id="workout-list"></div>
             </article>
           </div>
           <aside class="agent-panel">
             <div class="agent-mark">✳</div>
-            <span class="eyebrow">ТВОЙ АГЕНТ / CODEX</span>
-            <h2>У истории есть<br />что рассказать.</h2>
+            <span class="eyebrow">ПОМОЩНИК</span>
+            <h2>Сводка по твоим данным.</h2>
             <p class="agent-intro">
               Спроси о тренировках. Агент прочитает дневник и вызовет
               инструменты расчёта.
@@ -111,9 +125,9 @@
               <button data-question="Что есть в моей истории тренировок?">
                 Что уже есть в дневнике? ↗</button
               ><button
-                data-question="Покажи динамику моих пробежек и объясни ограничения сравнения."
+                data-question="Сколько шагов у меня за последние 7 дней?"
               >
-                Как меняются пробежки? ↗
+                Мои шаги за неделю ↗
               </button>
             </div>
             <div
@@ -150,8 +164,8 @@
         <div class="page-title">
           <div>
             <div class="eyebrow">ВИЗУАЛЬНЫЙ ДНЕВНИК</div>
-            <h1>Изменения<br />в твоём темпе<span>.</span></h1>
-            <p>Снимки по датам. Измерения — только те, что ты добавил сам.</p>
+            <h1>Фото формы<span>.</span></h1>
+            <p>Фотографии по датам и измеренный вес.</p>
           </div>
           <button class="button primary" id="add-photo">
             ＋ Добавить фото
@@ -166,91 +180,64 @@
           <div id="photo-gallery" class="photo-gallery"></div>
         </article>
       </section>
-      <section id="learning" class="view" hidden>
+      <section id="connections" class="view" hidden>
         <div class="page-title">
           <div>
-            <div class="eyebrow">АРХИТЕКТУРА ПРИЛОЖЕНИЯ</div>
-            <h1>Как работает<br />твой агент<span>.</span></h1>
-            <p>
-              Цель → решение модели → инструмент → результат → следующий шаг.
-            </p>
+            <div class="eyebrow">ИСТОЧНИКИ ДАННЫХ</div>
+            <h1>Подключения<span>.</span></h1>
+            <p>iPhone → iCloud Drive → RUNLOG.</p>
           </div>
         </div>
-        <div class="learning-grid">
-          <article class="panel">
-            <span class="step-no">01 / ПОСТАНОВКА</span>
-            <h2>Задача и ограничения</h2>
-            <p>
-              Сохранить тренировку со снимка или объяснить историю. Модель не
-              придумывает пропущенные показатели и не делает медицинских
-              выводов.
-            </p>
-          </article>
-          <article class="panel">
-            <span class="step-no">02 / МОДЕЛЬ</span>
-            <h2>Codex как исполнитель</h2>
-            <p>
-              Локальный сервер запускает <code>codex exec</code>. Текст и снимок
-              обрабатывает облачная модель; приложение получает
-              структурированный JSON.
-            </p>
-          </article>
-          <article class="panel">
-            <span class="step-no">03 / ИНСТРУМЕНТЫ</span>
-            <h2>Действие выбирает модель</h2>
-            <p>
-              <code>list_workouts</code> читает историю,
-              <code>get_progress</code> считает динамику,
-              <code>propose_workout</code> готовит черновик. Их выполняет
-              сервер.
-            </p>
-          </article>
-          <article class="panel">
-            <span class="step-no">04 / ПАМЯТЬ</span>
-            <h2>История живёт в SQLite</h2>
-            <p>
-              Модель получает нужные записи через инструмент. Контекст запроса
-              временный, а сохранённые тренировки остаются после перезапуска.
-            </p>
-          </article>
-          <article class="panel">
-            <span class="step-no">05 / ПРОВЕРКА</span>
-            <h2>Модель предлагает, ты проверяешь</h2>
-            <p>
-              Сервер проверяет дату, диапазоны и дубли. Пользователь исправляет
-              распознавание и подтверждает сохранение. У агента максимум четыре
-              шага.
-            </p>
-          </article>
-          <article class="panel">
-            <span class="step-no">06 / ГРАНИЦА</span>
-            <h2>Где агент, а где автоматизация?</h2>
-            <p>
-              Загрузка файла, запись в БД и график выполняются по правилам.
-              Агент выбирает, читать ли историю, считать ли динамику, уточнить
-              запрос или подготовить запись.
-            </p>
-          </article>
-        </div>
-        <article class="panel interview">
-          <span class="eyebrow">НАДЁЖНОСТЬ</span>
-          <h2>Проверки и ограничения</h2>
-          <p>
-            Сервер проверяет даты, диапазоны значений и дубли. Модель получает
-            ограниченный набор действий; повторный вызов уже выполненного
-            инструмента останавливает цикл. Распознанные показатели сохраняются
-            только после проверки пользователем.
+        <article class="panel">
+          <h2>Apple Health через «Команды»</h2>
+          <ol class="setup-steps">
+            <li>
+              Передай
+              <a
+                href="/downloads/health-sync.shortcut"
+                download="RUNLOG Health Sync.shortcut"
+                >RUNLOG Health Sync.shortcut</a
+              >
+              на iPhone, например через AirDrop, и добавь в «Команды».
+            </li>
+            <li>
+              Запусти на iPhone. Разреши чтение шагов и дистанции ходьбы и бега.
+              В действии «Сохранить файл» проверь папку iCloud Drive /
+              Shortcuts, имя runlog-health.json и замену существующего файла.
+            </li>
+            <li>
+              В «Команды → Автоматизация» добавь запуск RUNLOG Health Sync при
+              открытии Telegram. Выбери немедленное выполнение. Первый запуск
+              выполни вручную на разблокированном iPhone.
+            </li>
+            <li>
+              Оставь RUNLOG запущенным на Mac. После появления файла в iCloud
+              данные обновятся в течение 15 секунд. Сверь первый результат с
+              «Здоровьем».
+            </li>
+          </ol>
+          <p class="caption">
+            На Mac и iPhone нужен один iCloud Drive. Когда Mac выключен, импорт
+            возобновится при запуске RUNLOG. Команда читает последние 8 суток;
+            самый ранний неполный день исключается. Отсутствие образцов не
+            считается нулём шагов.
+          </p>
+        </article>
+        <article class="panel">
+          <h2>Telegram</h2>
+          <p id="telegram-connection">
+            Для подключения запусти npm run setup:telegram на Mac, затем npm run
+            bot. Токен вводится локально.
           </p>
           <p class="caption">
-            Инструменты реализованы функциями приложения. MCP, синхронизация с
-            часами и работа нескольких пользователей в этой версии не
-            реализованы.
+            Фото дорожки → распознанный черновик → подтверждение. /activity —
+            шаги, /summary — пробежки, /history — история.
           </p>
         </article>
       </section>
       <footer>
-        <span>RUNLOG / МАЛЕНЬКИЕ ШАГИ, ВИДИМЫЕ ИЗМЕНЕНИЯ</span
-        ><span>Локальный прототип · SQLite + Codex CLI</span>
+        <span>RUNLOG / ЛИЧНЫЙ ДНЕВНИК</span
+        ><span>v0.2 · Хранение на этом компьютере</span>
       </footer>
     </main>
     <dialog id="workout-dialog">
@@ -278,7 +265,7 @@
                 accept="image/png,image/jpeg,image/webp" /><span
                 class="upload-icon"
                 >↥</span
-              ><strong>Добавь скриншот тренировки</strong
+              ><strong>Фото дорожки или тренировки</strong
               ><span>PNG, JPG или WebP · до 8 МБ</span
               ><img
                 id="workout-preview"
@@ -369,7 +356,7 @@
         <div class="dialog-heading">
           <div>
             <span class="eyebrow">ФОТО ФОРМЫ</span>
-            <h2>Сохрани точку отсчёта</h2>
+            <h2>Добавить фото</h2>
           </div>
           <button
             type="button"

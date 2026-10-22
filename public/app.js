@@ -3,7 +3,7 @@ const state = {
   token: "",
   today: "",
   diary: { workouts: [], photos: [], summary: {} },
-  demo: false,
+  editingId: null,
   imageId: null,
   photoImageId: null,
   busy: false,
@@ -84,31 +84,31 @@ document
   );
 
 async function refresh() {
-  state.diary = await api(state.demo ? "/api/demo" : "/api/diary");
+  state.diary = await api("/api/diary");
   render();
 }
 function render() {
   const { workouts, photos, summary } = state.diary;
-  $("#demo-banner").hidden = !state.demo;
+  renderActivity();
   $("#stat-count").textContent = workouts.length;
   $("#stat-km").innerHTML = `${fmt(summary.totalKm || 0)} <em>км</em>`;
   $("#stat-pace").innerHTML = summary.averagePaceSeconds
     ? `${pace(summary.averagePaceSeconds)} <em>/км</em>`
     : "—";
   const first = [...workouts].sort((a, b) => a.date.localeCompare(b.date))[0];
-  $("#stat-first").textContent = first ? date(first.date) : "Сегодня";
+  $("#stat-first").textContent = first ? date(first.date) : "—";
   renderChart(summary.weeklyKm || []);
   $("#workout-list").innerHTML = workouts.length
     ? [...workouts]
         .sort((a, b) => b.date.localeCompare(a.date))
         .map(
           (w) =>
-            `<div class="workout-row"><span class="sport-icon">${w.sport === "run" ? "↗" : "◉"}</span><div class="workout-main"><strong>${esc(labels[w.sport])} · ${esc(date(w.date))}</strong><p>${esc(w.notes || (w.avgHR ? `Средний пульс ${w.avgHR} уд/мин` : "Твоя сохранённая тренировка"))}</p></div><div class="workout-numbers">${w.distanceKm ? `${fmt(w.distanceKm)} км` : duration(w.durationSeconds)}<small>${w.distanceKm && w.durationSeconds ? `${pace(w.durationSeconds / w.distanceKm)} /км · ` : ""}${w.durationSeconds ? duration(w.durationSeconds) : "Время не указано"}</small></div>${state.demo ? "" : `<button class="delete-button" data-delete-workout="${esc(w.id)}" aria-label="Удалить тренировку">×</button>`}</div>`,
+            `<div class="workout-row"><span class="sport-icon">${w.sport === "run" ? "↗" : "◉"}</span><div class="workout-main"><strong>${esc(labels[w.sport])} · ${esc(date(w.date))}</strong><p>${esc(w.notes || (w.avgHR ? `Средний пульс ${w.avgHR} уд/мин` : ""))}</p></div><div class="workout-numbers">${w.distanceKm ? `${fmt(w.distanceKm)} км` : duration(w.durationSeconds)}<small>${w.distanceKm && w.durationSeconds ? `${pace(w.durationSeconds / w.distanceKm)} /км · ` : ""}${w.durationSeconds ? duration(w.durationSeconds) : "Время не указано"}</small></div><button class="text-button" data-edit-workout="${esc(w.id)}" aria-label="Изменить тренировку">✎</button><button class="delete-button" data-delete-workout="${esc(w.id)}" aria-label="Удалить тренировку">×</button></div>`,
         )
         .join("")
     : empty(
-        "Первая тренировка — уже начало",
-        "Добавь скриншот или внеси показатели вручную. Здесь появится твоя история.",
+        "Тренировок пока нет",
+        "Добавь занятие вручную, через Telegram или импорт из файла.",
       );
   document.querySelectorAll("[data-delete-workout]").forEach((button) =>
     button.addEventListener("click", async () => {
@@ -126,11 +126,11 @@ function render() {
     ? photos
         .map(
           (p) =>
-            `<article class="photo-card"><img src="/images/${esc(p.imageId)}" alt="Фото формы от ${esc(date(p.date))}" loading="lazy"><div class="photo-info"><div><strong>${esc(date(p.date))}${p.weightKg ? ` · ${fmt(p.weightKg)} кг` : ""}</strong><p>${esc(p.notes || "Точка в твоей истории")}</p></div><button class="delete-button" data-delete-photo="${esc(p.id)}" aria-label="Удалить фото">×</button></div></article>`,
+            `<article class="photo-card"><img src="/images/${esc(p.imageId)}" alt="Фото формы от ${esc(date(p.date))}" loading="lazy"><div class="photo-info"><div><strong>${esc(date(p.date))}${p.weightKg ? ` · ${fmt(p.weightKg)} кг` : ""}</strong><p>${esc(p.notes || "")}</p></div><button class="delete-button" data-delete-photo="${esc(p.id)}" aria-label="Удалить фото">×</button></div></article>`,
         )
         .join("")
     : empty(
-        "Сохрани первую точку отсчёта",
+        "Фотографий пока нет",
         "Добавь фото, чтобы позже сравнить снимки по датам.",
       );
   document.querySelectorAll("[data-delete-photo]").forEach((button) =>
@@ -148,8 +148,8 @@ function render() {
 function renderChart(weeks) {
   if (!weeks.length) {
     $("#chart").innerHTML = empty(
-      "Здесь появится твой ритм",
-      "Сохрани пробежку — и начнём собирать километры по неделям.",
+      "Нет данных для графика",
+      "График строится по сохранённым пробежкам.",
     );
     return;
   }
@@ -185,23 +185,6 @@ function renderChart(weeks) {
     svg += `<rect x="${x}" y="${y0 - h}" width="${barW}" height="${Math.max(h, 1)}" rx="4" fill="${i === series.length - 1 ? "#819d60" : "#d3dfbd"}"><title>${esc(date(s.week))}: ${fmt(s.km)} км</title></rect><text x="${x + barW / 2}" y="${y0 + 20}" text-anchor="middle" font-size="9" fill="#879378">${esc(date(s.week))}</text>`;
   });
   $("#chart").innerHTML = svg + "</svg>";
-}
-
-$("#demo-button").addEventListener("click", async () => {
-  if (state.busy) return toast("Сначала дождись ответа агента.");
-  state.demo = true;
-  await refresh();
-});
-$("#exit-demo").addEventListener("click", async () => {
-  state.demo = false;
-  await refresh();
-});
-function requireReal() {
-  if (state.demo) {
-    toast("Вернись к своим данным, чтобы добавить запись или спросить агента.");
-    return false;
-  }
-  return true;
 }
 
 function readFile(file) {
@@ -261,7 +244,7 @@ async function ask(text, imageId, statusElement) {
 }
 
 $("#add-workout").addEventListener("click", () => {
-  if (!requireReal()) return;
+  state.editingId = null;
   $("#workout-form").reset();
   state.imageId = null;
   $("#w-date").value = state.today;
@@ -338,15 +321,19 @@ $("#workout-form").addEventListener("submit", async (event) => {
       minutes === "" && seconds === ""
         ? null
         : Number(minutes || 0) * 60 + Number(seconds || 0);
-    await api("/api/workouts", "POST", {
-      date: $("#w-date").value,
-      sport: $("#w-sport").value,
-      distanceKm: $("#w-distance").value,
-      durationSeconds,
-      avgHR: $("#w-hr").value,
-      notes: $("#w-notes").value,
-      imageId: state.imageId,
-    });
+    await api(
+      state.editingId ? `/api/workouts/${state.editingId}` : "/api/workouts",
+      state.editingId ? "PUT" : "POST",
+      {
+        date: $("#w-date").value,
+        sport: $("#w-sport").value,
+        distanceKm: $("#w-distance").value,
+        durationSeconds,
+        avgHR: $("#w-hr").value,
+        notes: $("#w-notes").value,
+        imageId: state.imageId,
+      },
+    );
     $("#workout-dialog").close();
     await refresh();
     toast("Тренировка сохранена");
@@ -359,7 +346,6 @@ $("#workout-form").addEventListener("submit", async (event) => {
 
 $("#chat-form").addEventListener("submit", async (event) => {
   event.preventDefault();
-  if (!requireReal()) return;
   const text = $("#chat-input").value.trim();
   if (!text) return;
   message(text, "user");
@@ -367,7 +353,12 @@ $("#chat-form").addEventListener("submit", async (event) => {
   try {
     const result = await ask(text);
     message(result.reply);
+    if (result.evidence)
+      message(
+        `Проверено по записям: ${result.evidence.sourceCount}. Расчёты выполнены приложением.`,
+      );
     if (result.draft) {
+      state.editingId = null;
       $("#workout-form").reset();
       state.imageId = null;
       $("#workout-preview").hidden = true;
@@ -390,7 +381,6 @@ document.querySelectorAll("[data-question]").forEach((button) =>
   }),
 );
 $("#add-photo").addEventListener("click", () => {
-  if (!requireReal()) return;
   $("#photo-form").reset();
   $("#photo-date").value = state.today;
   $("#photo-error").textContent = "";
@@ -444,8 +434,82 @@ try {
       ? "Нужен вход в Codex"
       : "Codex CLI не найден";
   $("#codex-status").classList.toggle("ready", status.codex.authenticated);
+  if (status.telegramUsername) {
+    const link = document.createElement("a");
+    link.href = `https://t.me/${status.telegramUsername}`;
+    link.textContent = `Открыть @${status.telegramUsername} ↗`;
+    $("#telegram-connection").replaceChildren(link);
+  }
   await refresh();
+  setInterval(() => refresh().catch(() => {}), 15000);
 } catch (e) {
   toast(e.message);
   $("#codex-status").textContent = "Не удалось подключиться";
 }
+
+function renderActivity() {
+  const { activity = [], sync = {} } = state.diary;
+  const labels = {
+    synced: "Синхронизировано",
+    waiting: "Ожидаем файл с iPhone",
+    disabled: "Не подключено",
+    error: "Ошибка синхронизации",
+  };
+  $("#sync-status").textContent =
+    labels[sync.status] || "Ожидаем синхронизацию";
+  const last = sync.lastImport;
+  $("#sync-detail").textContent =
+    sync.error ||
+    (last
+      ? `Источник: ${last.source} · Экспорт ${new Date(last.generatedAt).toLocaleString("ru-RU")}. Шаги и дистанция ходьбы и бега; учитываются отдельно от тренировок.`
+      : "В разделе «Подключения» установи RUNLOG Health Sync на iPhone.");
+  const rows = activity.slice(0, 7).reverse();
+  $("#activity-days").innerHTML = rows.length
+    ? rows
+        .map(
+          (r) =>
+            `<article><span>${esc(date(r.date))}${r.partial ? " · неполный день" : ""}</span><strong>${r.steps == null ? "—" : fmt(r.steps)}</strong><small>шагов${r.distanceKm == null ? "" : ` · ${fmt(r.distanceKm)} км`}</small></article>`,
+        )
+        .join("")
+    : '<p class="caption">Данные активности ещё не поступили.</p>';
+}
+$("#workout-list").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-edit-workout]");
+  if (!button) return;
+  const w = state.diary.workouts.find(
+    (w) => w.id === button.dataset.editWorkout,
+  );
+  $("#workout-form").reset();
+  state.editingId = w.id;
+  state.imageId = null;
+  $("#workout-preview").hidden = true;
+  $("#recognition-status").textContent = "";
+  $("#workout-error").textContent = "";
+  fillDraft(w);
+  $("#workout-dialog").showModal();
+});
+$("#import-file").addEventListener("change", async (event) => {
+  try {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (file.size > 8 * 1024 * 1024)
+      throw new Error("Размер импорта не должен превышать 8 МБ.");
+    const draft = await api("/api/import", "POST", {
+      filename: file.name,
+      text: await file.text(),
+    });
+    if (
+      !confirm(
+        `Импортировать ${draft.count} тренировок? Некорректных: ${draft.skipped}. Дубли будут пропущены.`,
+      )
+    )
+      return;
+    const result = await api(`/api/imports/${draft.id}/confirm`, "POST", {});
+    await refresh();
+    toast(`Импортировано: ${result.imported}. Дубли: ${result.duplicates}.`);
+  } catch (error) {
+    toast(error.message);
+  } finally {
+    event.target.value = "";
+  }
+});
