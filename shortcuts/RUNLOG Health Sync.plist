@@ -46,8 +46,6 @@ After the first run, compare the imported steps with Health. An empty export doe
 				<key>WFDateFormatStyle</key>
 				<string>Custom</string>
 				<key>WFDateFormat</key>
-				<string>Custom</string>
-				<key>WFDateFormatString</key>
 				<string>yyyy-MM-dd'T'HH:mm:ssXXXXX</string>
 				<key>WFLocale</key>
 				<string>en_US_POSIX</string>
@@ -104,7 +102,7 @@ After the first run, compare the imported steps with Health. An empty export doe
 									<key>Number</key>
 									<integer>8</integer>
 									<key>Unit</key>
-									<integer>16384</integer>
+									<integer>16</integer>
 								</dict>
 							</dict>
 						</array>
@@ -198,8 +196,6 @@ After the first run, compare the imported steps with Health. An empty export doe
 				<key>WFDateFormatStyle</key>
 				<string>Custom</string>
 				<key>WFDateFormat</key>
-				<string>Custom</string>
-				<key>WFDateFormatString</key>
 				<string>yyyy-MM-dd'T'HH:mm:ssXXXXX</string>
 				<key>WFLocale</key>
 				<string>en_US_POSIX</string>
@@ -260,8 +256,6 @@ After the first run, compare the imported steps with Health. An empty export doe
 				<key>WFDateFormatStyle</key>
 				<string>Custom</string>
 				<key>WFDateFormat</key>
-				<string>Custom</string>
-				<key>WFDateFormatString</key>
 				<string>yyyy-MM-dd'T'HH:mm:ssXXXXX</string>
 				<key>WFLocale</key>
 				<string>en_US_POSIX</string>
@@ -668,7 +662,7 @@ After the first run, compare the imported steps with Health. An empty export doe
 									<key>Number</key>
 									<integer>8</integer>
 									<key>Unit</key>
-									<integer>16384</integer>
+									<integer>16</integer>
 								</dict>
 							</dict>
 						</array>
@@ -762,8 +756,6 @@ After the first run, compare the imported steps with Health. An empty export doe
 				<key>WFDateFormatStyle</key>
 				<string>Custom</string>
 				<key>WFDateFormat</key>
-				<string>Custom</string>
-				<key>WFDateFormatString</key>
 				<string>yyyy-MM-dd'T'HH:mm:ssXXXXX</string>
 				<key>WFLocale</key>
 				<string>en_US_POSIX</string>
@@ -824,8 +816,6 @@ After the first run, compare the imported steps with Health. An empty export doe
 				<key>WFDateFormatStyle</key>
 				<string>Custom</string>
 				<key>WFDateFormat</key>
-				<string>Custom</string>
-				<key>WFDateFormatString</key>
 				<string>yyyy-MM-dd'T'HH:mm:ssXXXXX</string>
 				<key>WFLocale</key>
 				<string>en_US_POSIX</string>
