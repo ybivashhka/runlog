@@ -1,0 +1,14 @@
+{
+  "name": "runlog-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local sports diary with image extraction, an agent tool loop and SQLite storage.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test tests/*.test.mjs"
+  }
+}
