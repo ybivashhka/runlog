@@ -1,6 +1,5 @@
 node_modules/
-data/*
-!data/.gitkeep
+/data/
 .env
 .env.*
 !.env.example
@@ -12,3 +11,5 @@ data/*
 *.sqlite-shm
 *.sqlite-wal
 coverage/
+
+*.unsigned.shortcut

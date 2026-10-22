@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from "node:crypto";
+import { createHash } from "node:crypto";
 
 export const sports = ["run", "walk", "cycle", "strength", "other"];
 export const labels = {
@@ -114,29 +114,4 @@ export function summarize(workouts) {
       "Отсутствующие показатели исключены из соответствующих расчётов.",
     ],
   };
-}
-
-export function demoWorkouts(today = new Date().toISOString().slice(0, 10)) {
-  return [
-    [20, 2.1, 1020, 154],
-    [17, 2.5, 1190, 151],
-    [14, 3, 1410, 152],
-    [10, 2.5, 1160, 149],
-    [7, 3, 1380, 150],
-    [3, 3.2, 1460, 149],
-    [0, 3, 1350, 148],
-  ].map(([days, distanceKm, durationSeconds, avgHR]) => {
-    const date = new Date(`${today}T12:00:00Z`);
-    date.setUTCDate(date.getUTCDate() - days);
-    return {
-      id: randomUUID(),
-      date: date.toISOString().slice(0, 10),
-      sport: "run",
-      distanceKm,
-      durationSeconds,
-      avgHR,
-      notes: "Вымышленная тренировка для знакомства с интерфейсом",
-      imageId: null,
-    };
-  });
 }

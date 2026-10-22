@@ -6,14 +6,16 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { randomBytes, randomUUID } from "node:crypto";
 import { createStore } from "./store.mjs";
-import { summarize, demoWorkouts } from "./core.mjs";
+import { summarize } from "./core.mjs";
 import { runAgent } from "./agent.mjs";
+import { parseWorkoutImport } from "./imports.mjs";
+import { createHealthSync } from "./sync.mjs";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const exec = promisify(execFile);
 function today() {
   const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Saigon",
+    timeZone: process.env.SPORT_TIMEZONE || "Asia/Saigon",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -24,10 +26,16 @@ function today() {
 }
 
 export async function createApp({
-  dataDir = path.join(root, "data"),
+  dataDir = process.env.RUNLOG_DATA_DIR || path.join(root, "data"),
   model,
+  syncFile,
 } = {}) {
   const store = await createStore(dataDir);
+  const healthSync = createHealthSync({
+    store,
+    ...(syncFile !== undefined ? { file: syncFile } : {}),
+  });
+  // Start only when the application is actually serving.
   const jobsDir = path.join(dataDir, "jobs");
   await mkdir(jobsDir, { recursive: true });
   const token = randomBytes(24).toString("hex"),
@@ -105,6 +113,11 @@ export async function createApp({
           today: today(),
           codex: { available, authenticated },
           storage: "SQLite на этом компьютере",
+          telegramUsername: /^[A-Za-z0-9_]+$/.test(
+            process.env.TELEGRAM_BOT_USERNAME || "",
+          )
+            ? process.env.TELEGRAM_BOT_USERNAME
+            : null,
         });
       }
       if (req.method === "GET" && p === "/api/diary") {
@@ -113,23 +126,23 @@ export async function createApp({
           workouts,
           photos: store.listPhotos(),
           summary: summarize(workouts),
+          activity: store.listActivity(),
+          sync: {
+            ...healthSync.state,
+            lastImport: store.getSetting("health_sync"),
+          },
         });
       }
-      if (req.method === "GET" && p === "/api/demo") {
-        const workouts = demoWorkouts(today());
-        return send(res, 200, {
-          workouts,
-          photos: [],
-          summary: summarize(workouts),
-        });
-      }
+      if (req.method === "GET" && p === "/api/health")
+        return send(res, 200, { ok: true });
       if (req.method === "GET" && p === "/api/export")
         return send(res, 200, {
           version: 1,
           exportedAt: new Date().toISOString(),
           workouts: store.listWorkouts(),
           photos: store.listPhotos(),
-          note: "Файлы изображений хранятся отдельно в sport-agent/data/images.",
+          activity: store.listActivity(),
+          note: "Файлы изображений хранятся отдельно в каталоге images рядом с diary.sqlite.",
         });
       if (req.method === "POST" && p === "/api/images") {
         const body = await json(req);
@@ -148,6 +161,26 @@ export async function createApp({
       }
       if (req.method === "POST" && p === "/api/workouts")
         return send(res, 201, store.saveWorkout(await json(req)));
+      if (req.method === "PUT" && /^\/api\/workouts\/[\w-]+$/.test(p))
+        return send(
+          res,
+          200,
+          await store.updateWorkout(p.split("/").at(-1), await json(req)),
+        );
+      if (req.method === "POST" && p === "/api/import") {
+        const body = await json(req),
+          parsed = parseWorkoutImport(body.text, body.filename);
+        const draft = store.createDraft("web", { kind: "import", ...parsed });
+        return send(res, 200, {
+          id: draft.id,
+          count: parsed.workouts.length,
+          skipped: parsed.skipped,
+          errors: parsed.errors,
+          preview: parsed.workouts.slice(0, 10),
+        });
+      }
+      if (req.method === "POST" && /^\/api\/imports\/[\w-]+\/confirm$/.test(p))
+        return send(res, 200, store.confirmDraft(p.split("/")[3], "web"));
       if (req.method === "POST" && p === "/api/photos")
         return send(res, 201, store.savePhoto(await json(req)));
       if (
@@ -211,6 +244,20 @@ export async function createApp({
           job || { error: "Запрос не найден." },
         );
       }
+      if (req.method === "GET" && p === "/downloads/health-sync.shortcut") {
+        res.setHeader(
+          "Content-Disposition",
+          'attachment; filename="RUNLOG Health Sync.shortcut"',
+        );
+        return send(
+          res,
+          200,
+          await readFile(
+            path.join(root, "shortcuts", "RUNLOG Health Sync.shortcut"),
+          ),
+          "application/octet-stream",
+        );
+      }
       const files = {
         "/": ["index.html", "text/html; charset=utf-8"],
         "/app.js": ["app.js", "text/javascript; charset=utf-8"],
@@ -232,7 +279,9 @@ export async function createApp({
       });
     }
   });
-  return { server, store };
+  server.once("listening", () => healthSync.start());
+  server.on("close", () => healthSync.stop());
+  return { server, store, healthSync };
 }
 
 if (
