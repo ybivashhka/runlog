@@ -23,7 +23,7 @@ const payload = (extra = {}) =>
   JSON.stringify({
     format: "runlog-health-v1",
     generatedAt: "2026-10-23T17:00:00+07:00",
-    steps: [sample(21, 100), sample(22, 500), sample(23, 300)],
+    steps: [sample(15, 100), sample(22, 500), sample(23, 300)],
     distance: [],
     ...extra,
   });
@@ -95,11 +95,12 @@ test("snapshots replace totals, survive restart, reject older data and preserve 
       [300, 500],
     );
     store.importActivity(
-      parse(
+      parseActivityImport(
         payload({
-          generatedAt: "2026-10-23T17:30:00+07:00",
+          generatedAt: "2026-10-30T17:30:00+07:00",
           steps: [sample(22, 10), sample(23, 450)],
         }),
+        { now: new Date("2026-10-30T18:00:00+07:00") },
       ),
     );
     assert.deepEqual(
@@ -116,7 +117,8 @@ test("snapshots replace totals, survive restart, reject older data and preserve 
       /Источник/,
     );
     const report = activityReport(store.listActivity(), {
-      today: "2026-10-23",
+      today: "2026-10-30",
+      days: 30,
     });
     assert.equal(report.metrics.totalSteps, 950);
     assert.equal(report.metrics.recordedDays, 2);
@@ -152,7 +154,7 @@ test("agent cannot replace a calculated report with invented progress claims", a
   });
   assert.equal(result.evidence.verified, true);
   assert.doesNotMatch(result.reply, /90000|50%/);
-  assert.match(result.reply, /900/);
+  assert.match(result.reply, /800/);
 });
 test("draft approval is owner-scoped and idempotent; outsiders cannot use the bot", async () =>
   withStore(async (store, dir) => {
