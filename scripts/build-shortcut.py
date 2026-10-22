@@ -34,7 +34,7 @@ def text(*parts):
 
 def formatted(name, value):
     return action(name, 'format.date', WFDate=text(value), WFDateFormatStyle='Custom',
-                  WFDateFormat='Custom', WFDateFormatString="yyyy-MM-dd'T'HH:mm:ssXXXXX", WFLocale='en_US_POSIX')
+                  WFDateFormat="yyyy-MM-dd'T'HH:mm:ssXXXXX", WFLocale='en_US_POSIX')
 
 action('Comment', 'comment', WFCommentActionText='RUNLOG Health Sync\nRead-only: Steps and Walking + Running Distance for the last 8 days.\nSaves runlog-health.json in iCloud Drive/Shortcuts. No Health records are written.\nAfter the first run, compare the imported steps with Health. An empty export does not mean zero steps.')
 generated = formatted('Export time', {'Type': 'CurrentDate'})
@@ -47,7 +47,7 @@ for kind, label in [('steps', 'Steps'), ('distance', 'Walking + Running Distance
                 {'Bounded': True, 'Operator': 4, 'Property': 'Type', 'Removable': False,
                  'Values': {'Enumeration': {'Value': label, 'WFSerializationType': 'WFStringSubstitutableState'}}},
                 {'Bounded': True, 'Operator': 1001, 'Property': 'Start Date', 'Removable': True,
-                 'Values': {'Number': 8, 'Unit': 16384}}
+                 'Values': {'Number': 8, 'Unit': 16}}
             ]}, 'WFSerializationType': 'WFContentPredicateTableTemplate'}, WFContentItemLimitEnabled=False)
     group = uid(kind + '-group')
     action(kind + '-loop-start', 'repeat.each', GroupingIdentifier=group, WFControlFlowMode=0, WFInput=ref(samples))
