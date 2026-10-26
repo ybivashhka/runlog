@@ -28,6 +28,34 @@ function number(value) {
   return Number(normalized);
 }
 
+function unpackColumns(input) {
+  const result = { ...input, format: "runlog-health-v1", steps: [], distance: [] };
+  const limit = Number(input.sampleLimit);
+  if (!Number.isInteger(limit) || limit < 1 || limit > 2000)
+    throw new Error("Некорректный лимит экспорта Health.");
+  for (const kind of ["steps", "distance"]) {
+    const count = Number(input[`${kind}Count`]);
+    if (!Number.isInteger(count) || count < 0 || count >= limit)
+      throw new Error("Экспорт достиг лимита образцов и может быть неполным. Данные не импортированы.");
+    const columns = {};
+    for (const field of ["start", "end", "value", "unit", "source"]) {
+      const raw = input[`${kind}_${field}`];
+      if (typeof raw !== "string") throw new Error("Неполные столбцы экспорта Health.");
+      const values = raw === "" ? [] : raw.split(/\r?\n/).map(s => s.trim());
+      if (["unit", "source"].includes(field) && values.length === 1 && count > 1)
+        columns[field] = Array(count).fill(values[0]);
+      else if (values.length === count) columns[field] = values;
+      else throw new Error("Количество образцов и значений Health не совпало. Данные не импортированы.");
+    }
+    for (let i = 0; i < count; i++) {
+      if (columns.start[i].slice(0, 10) !== input.generatedAt?.slice(0, 10))
+        throw new Error("Health Sync v2 должен содержать только сегодняшний день.");
+      result[kind].push(Object.fromEntries(Object.entries(columns).map(([k, v]) => [k, v[i]])));
+    }
+  }
+  return result;
+}
+
 // Health samples from different sources must never be added together.
 export function parseActivityImport(
   text,
@@ -43,13 +71,14 @@ export function parseActivityImport(
       "Файл синхронизации ещё не записан полностью или содержит неверный JSON.",
     );
   }
+  if (input?.format === "runlog-health-v2") input = unpackColumns(input);
   if (
     input?.format !== "runlog-health-v1" ||
     !Array.isArray(input.steps) ||
     !Array.isArray(input.distance)
   )
     throw new Error(
-      "Нужен файл runlog-health-v1 из команды RUNLOG Health Sync.",
+      "Нужен файл из команды RUNLOG Health Sync (v1 или v2).",
     );
   const generatedAt = timestamp(input.generatedAt);
   if (Date.parse(generatedAt) > now.getTime() + 5 * 60_000)

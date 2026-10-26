@@ -1023,3 +1023,18 @@ dialog::backdrop {
 .import-label {
   cursor: pointer;
 }
+
+.run-panel { display: flex; align-items: center; gap: 24px; margin-bottom: 24px; flex-wrap: wrap; }
+.run-panel .caption { margin-top: 8px; }
+.run-clock { font-size: 42px; font-variant-numeric: tabular-nums; margin-left: auto; }
+.run-buttons { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.telegram-panel { margin-bottom: 24px; }
+.telegram-panel form { max-width: 600px; }
+#telegram-setup-result { overflow-wrap: anywhere; }
+@media (max-width: 680px) {
+  .field input, .field select, .field textarea { font-size: 16px; }
+  .run-panel { gap: 16px; }
+  .run-clock { margin-left: 0; }
+  .run-buttons { width: 100%; }
+  .button { min-height: 44px; }
+}

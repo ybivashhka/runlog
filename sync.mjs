@@ -78,6 +78,9 @@ export function createHealthSync({
         state.error = null;
         if (result.changed) await onImport(batch, result);
       }
+      // A transient read failure must clear after the same file becomes readable.
+      state.status = "synced";
+      state.error = null;
     } catch (error) {
       state.status = error.code === "ENOENT" ? "waiting" : "error";
       state.error = error.code === "ENOENT" ? null : error.message;

@@ -10,12 +10,10 @@
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>A07D2B32-E1C0-5E87-82D3-EECA13DA76DC</string>
+				<string>F88AD8DC-0AD7-5FDA-A620-656C504E3DD9</string>
 				<key>WFCommentActionText</key>
-				<string>RUNLOG Health Sync
-Read-only: Steps and Walking + Running Distance for the last 8 days.
-Saves runlog-health.json in iCloud Drive/Shortcuts. No Health records are written.
-After the first run, compare the imported steps with Health. An empty export does not mean zero steps.</string>
+				<string>RUNLOG Health Sync v2
+Today only. Two bounded queries, no per-sample loops. Reads Steps and Walking + Running Distance. Saves runlog-health.json to iCloud Drive/Shortcuts. Does not write to Health. Compare the first import with Health.</string>
 			</dict>
 		</dict>
 		<dict>
@@ -24,24 +22,16 @@ After the first run, compare the imported steps with Health. An empty export doe
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>CAE2E566-8039-5D0F-8EA2-618622387B94</string>
+				<string>969FACD1-F3BA-53D3-9163-7F7BD23CA7F9</string>
 				<key>WFDate</key>
 				<dict>
 					<key>Value</key>
 					<dict>
-						<key>string</key>
-						<string>￼</string>
-						<key>attachmentsByRange</key>
-						<dict>
-							<key>{0, 1}</key>
-							<dict>
-								<key>Type</key>
-								<string>CurrentDate</string>
-							</dict>
-						</dict>
+						<key>Type</key>
+						<string>CurrentDate</string>
 					</dict>
 					<key>WFSerializationType</key>
-					<string>WFTextTokenString</string>
+					<string>WFTextTokenAttachment</string>
 				</dict>
 				<key>WFDateFormatStyle</key>
 				<string>Custom</string>
@@ -57,7 +47,7 @@ After the first run, compare the imported steps with Health. An empty export doe
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>82B6EBE7-62AA-5523-9B81-FC69AFBBA3F7</string>
+				<string>B94ECF70-6B68-5A57-9B98-183478879898</string>
 				<key>WFContentItemFilter</key>
 				<dict>
 					<key>Value</key>
@@ -92,7 +82,7 @@ After the first run, compare the imported steps with Health. An empty export doe
 								<key>Bounded</key>
 								<true/>
 								<key>Operator</key>
-								<integer>1001</integer>
+								<integer>1002</integer>
 								<key>Property</key>
 								<string>Start Date</string>
 								<key>Removable</key>
@@ -100,7 +90,7 @@ After the first run, compare the imported steps with Health. An empty export doe
 								<key>Values</key>
 								<dict>
 									<key>Number</key>
-									<integer>8</integer>
+									<string>7</string>
 									<key>Unit</key>
 									<integer>16</integer>
 								</dict>
@@ -111,28 +101,28 @@ After the first run, compare the imported steps with Health. An empty export doe
 					<string>WFContentPredicateTableTemplate</string>
 				</dict>
 				<key>WFContentItemLimitEnabled</key>
-				<false/>
+				<true/>
+				<key>WFContentItemLimitNumber</key>
+				<integer>2000</integer>
 			</dict>
 		</dict>
 		<dict>
 			<key>WFWorkflowActionIdentifier</key>
-			<string>is.workflow.actions.repeat.each</string>
+			<string>is.workflow.actions.count</string>
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>1E743B22-1944-5BDF-B1A3-6B8D3D1116C0</string>
-				<key>GroupingIdentifier</key>
-				<string>D4D014D9-5370-520B-BF52-B229F55A99A2</string>
-				<key>WFControlFlowMode</key>
-				<integer>0</integer>
-				<key>WFInput</key>
+				<string>2AC13307-8E21-5ADD-AAF6-A758D7B910C0</string>
+				<key>WFCountType</key>
+				<string>Items</string>
+				<key>Input</key>
 				<dict>
 					<key>Value</key>
 					<dict>
 						<key>Type</key>
 						<string>ActionOutput</string>
 						<key>OutputUUID</key>
-						<string>82B6EBE7-62AA-5523-9B81-FC69AFBBA3F7</string>
+						<string>B94ECF70-6B68-5A57-9B98-183478879898</string>
 						<key>OutputName</key>
 						<string>Health Samples</string>
 					</dict>
@@ -147,7 +137,7 @@ After the first run, compare the imported steps with Health. An empty export doe
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>4AFF3E9E-F546-52A2-9CE1-6EE89C2B9C14</string>
+				<string>BBEAE543-27C4-5C82-AA4D-65E9FCF8C6ED</string>
 				<key>WFContentItemPropertyName</key>
 				<string>Start Date</string>
 				<key>WFInput</key>
@@ -155,9 +145,11 @@ After the first run, compare the imported steps with Health. An empty export doe
 					<key>Value</key>
 					<dict>
 						<key>Type</key>
-						<string>Variable</string>
-						<key>VariableName</key>
-						<string>Repeat Item</string>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>B94ECF70-6B68-5A57-9B98-183478879898</string>
+						<key>OutputName</key>
+						<string>Health Samples</string>
 					</dict>
 					<key>WFSerializationType</key>
 					<string>WFTextTokenAttachment</string>
@@ -170,28 +162,20 @@ After the first run, compare the imported steps with Health. An empty export doe
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>167952CD-0154-5E63-90EE-7A90C65FA7D9</string>
+				<string>B4CB0CE9-B115-5247-B666-637025BDC4FC</string>
 				<key>WFDate</key>
 				<dict>
 					<key>Value</key>
 					<dict>
-						<key>string</key>
-						<string>￼</string>
-						<key>attachmentsByRange</key>
-						<dict>
-							<key>{0, 1}</key>
-							<dict>
-								<key>Type</key>
-								<string>ActionOutput</string>
-								<key>OutputUUID</key>
-								<string>4AFF3E9E-F546-52A2-9CE1-6EE89C2B9C14</string>
-								<key>OutputName</key>
-								<string>steps-start</string>
-							</dict>
-						</dict>
+						<key>Type</key>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>BBEAE543-27C4-5C82-AA4D-65E9FCF8C6ED</string>
+						<key>OutputName</key>
+						<string>Details of Health Samples</string>
 					</dict>
 					<key>WFSerializationType</key>
-					<string>WFTextTokenString</string>
+					<string>WFTextTokenAttachment</string>
 				</dict>
 				<key>WFDateFormatStyle</key>
 				<string>Custom</string>
@@ -199,389 +183,6 @@ After the first run, compare the imported steps with Health. An empty export doe
 				<string>yyyy-MM-dd'T'HH:mm:ssXXXXX</string>
 				<key>WFLocale</key>
 				<string>en_US_POSIX</string>
-			</dict>
-		</dict>
-		<dict>
-			<key>WFWorkflowActionIdentifier</key>
-			<string>is.workflow.actions.properties.health.quantity</string>
-			<key>WFWorkflowActionParameters</key>
-			<dict>
-				<key>UUID</key>
-				<string>F563821F-3B0D-5C80-8970-1A5F2E51A3A5</string>
-				<key>WFContentItemPropertyName</key>
-				<string>End Date</string>
-				<key>WFInput</key>
-				<dict>
-					<key>Value</key>
-					<dict>
-						<key>Type</key>
-						<string>Variable</string>
-						<key>VariableName</key>
-						<string>Repeat Item</string>
-					</dict>
-					<key>WFSerializationType</key>
-					<string>WFTextTokenAttachment</string>
-				</dict>
-			</dict>
-		</dict>
-		<dict>
-			<key>WFWorkflowActionIdentifier</key>
-			<string>is.workflow.actions.format.date</string>
-			<key>WFWorkflowActionParameters</key>
-			<dict>
-				<key>UUID</key>
-				<string>0025B46A-0531-579D-9D7A-B8D1AE96F620</string>
-				<key>WFDate</key>
-				<dict>
-					<key>Value</key>
-					<dict>
-						<key>string</key>
-						<string>￼</string>
-						<key>attachmentsByRange</key>
-						<dict>
-							<key>{0, 1}</key>
-							<dict>
-								<key>Type</key>
-								<string>ActionOutput</string>
-								<key>OutputUUID</key>
-								<string>F563821F-3B0D-5C80-8970-1A5F2E51A3A5</string>
-								<key>OutputName</key>
-								<string>steps-end</string>
-							</dict>
-						</dict>
-					</dict>
-					<key>WFSerializationType</key>
-					<string>WFTextTokenString</string>
-				</dict>
-				<key>WFDateFormatStyle</key>
-				<string>Custom</string>
-				<key>WFDateFormat</key>
-				<string>yyyy-MM-dd'T'HH:mm:ssXXXXX</string>
-				<key>WFLocale</key>
-				<string>en_US_POSIX</string>
-			</dict>
-		</dict>
-		<dict>
-			<key>WFWorkflowActionIdentifier</key>
-			<string>is.workflow.actions.properties.health.quantity</string>
-			<key>WFWorkflowActionParameters</key>
-			<dict>
-				<key>UUID</key>
-				<string>2745DC2B-A6B7-5547-B651-794AD16BD497</string>
-				<key>WFContentItemPropertyName</key>
-				<string>Value</string>
-				<key>WFInput</key>
-				<dict>
-					<key>Value</key>
-					<dict>
-						<key>Type</key>
-						<string>Variable</string>
-						<key>VariableName</key>
-						<string>Repeat Item</string>
-					</dict>
-					<key>WFSerializationType</key>
-					<string>WFTextTokenAttachment</string>
-				</dict>
-			</dict>
-		</dict>
-		<dict>
-			<key>WFWorkflowActionIdentifier</key>
-			<string>is.workflow.actions.properties.health.quantity</string>
-			<key>WFWorkflowActionParameters</key>
-			<dict>
-				<key>UUID</key>
-				<string>15647AC0-7B30-5032-86C0-CFFB91C9F31B</string>
-				<key>WFContentItemPropertyName</key>
-				<string>Unit</string>
-				<key>WFInput</key>
-				<dict>
-					<key>Value</key>
-					<dict>
-						<key>Type</key>
-						<string>Variable</string>
-						<key>VariableName</key>
-						<string>Repeat Item</string>
-					</dict>
-					<key>WFSerializationType</key>
-					<string>WFTextTokenAttachment</string>
-				</dict>
-			</dict>
-		</dict>
-		<dict>
-			<key>WFWorkflowActionIdentifier</key>
-			<string>is.workflow.actions.properties.health.quantity</string>
-			<key>WFWorkflowActionParameters</key>
-			<dict>
-				<key>UUID</key>
-				<string>47F5F590-D77F-581A-B4BC-136AFE9E9FED</string>
-				<key>WFContentItemPropertyName</key>
-				<string>Source</string>
-				<key>WFInput</key>
-				<dict>
-					<key>Value</key>
-					<dict>
-						<key>Type</key>
-						<string>Variable</string>
-						<key>VariableName</key>
-						<string>Repeat Item</string>
-					</dict>
-					<key>WFSerializationType</key>
-					<string>WFTextTokenAttachment</string>
-				</dict>
-			</dict>
-		</dict>
-		<dict>
-			<key>WFWorkflowActionIdentifier</key>
-			<string>is.workflow.actions.dictionary</string>
-			<key>WFWorkflowActionParameters</key>
-			<dict>
-				<key>UUID</key>
-				<string>8D336B81-29F6-5391-AEA4-C83C4BA00D6D</string>
-				<key>WFItems</key>
-				<dict>
-					<key>Value</key>
-					<dict>
-						<key>WFDictionaryFieldValueItems</key>
-						<array>
-							<dict>
-								<key>WFItemType</key>
-								<integer>0</integer>
-								<key>WFKey</key>
-								<dict>
-									<key>Value</key>
-									<dict>
-										<key>string</key>
-										<string>start</string>
-										<key>attachmentsByRange</key>
-										<dict/>
-									</dict>
-									<key>WFSerializationType</key>
-									<string>WFTextTokenString</string>
-								</dict>
-								<key>WFValue</key>
-								<dict>
-									<key>Value</key>
-									<dict>
-										<key>string</key>
-										<string>￼</string>
-										<key>attachmentsByRange</key>
-										<dict>
-											<key>{0, 1}</key>
-											<dict>
-												<key>Type</key>
-												<string>ActionOutput</string>
-												<key>OutputUUID</key>
-												<string>167952CD-0154-5E63-90EE-7A90C65FA7D9</string>
-												<key>OutputName</key>
-												<string>Formatted Date</string>
-											</dict>
-										</dict>
-									</dict>
-									<key>WFSerializationType</key>
-									<string>WFTextTokenString</string>
-								</dict>
-							</dict>
-							<dict>
-								<key>WFItemType</key>
-								<integer>0</integer>
-								<key>WFKey</key>
-								<dict>
-									<key>Value</key>
-									<dict>
-										<key>string</key>
-										<string>end</string>
-										<key>attachmentsByRange</key>
-										<dict/>
-									</dict>
-									<key>WFSerializationType</key>
-									<string>WFTextTokenString</string>
-								</dict>
-								<key>WFValue</key>
-								<dict>
-									<key>Value</key>
-									<dict>
-										<key>string</key>
-										<string>￼</string>
-										<key>attachmentsByRange</key>
-										<dict>
-											<key>{0, 1}</key>
-											<dict>
-												<key>Type</key>
-												<string>ActionOutput</string>
-												<key>OutputUUID</key>
-												<string>0025B46A-0531-579D-9D7A-B8D1AE96F620</string>
-												<key>OutputName</key>
-												<string>Formatted Date</string>
-											</dict>
-										</dict>
-									</dict>
-									<key>WFSerializationType</key>
-									<string>WFTextTokenString</string>
-								</dict>
-							</dict>
-							<dict>
-								<key>WFItemType</key>
-								<integer>0</integer>
-								<key>WFKey</key>
-								<dict>
-									<key>Value</key>
-									<dict>
-										<key>string</key>
-										<string>value</string>
-										<key>attachmentsByRange</key>
-										<dict/>
-									</dict>
-									<key>WFSerializationType</key>
-									<string>WFTextTokenString</string>
-								</dict>
-								<key>WFValue</key>
-								<dict>
-									<key>Value</key>
-									<dict>
-										<key>string</key>
-										<string>￼</string>
-										<key>attachmentsByRange</key>
-										<dict>
-											<key>{0, 1}</key>
-											<dict>
-												<key>Type</key>
-												<string>ActionOutput</string>
-												<key>OutputUUID</key>
-												<string>2745DC2B-A6B7-5547-B651-794AD16BD497</string>
-												<key>OutputName</key>
-												<string>steps-value</string>
-											</dict>
-										</dict>
-									</dict>
-									<key>WFSerializationType</key>
-									<string>WFTextTokenString</string>
-								</dict>
-							</dict>
-							<dict>
-								<key>WFItemType</key>
-								<integer>0</integer>
-								<key>WFKey</key>
-								<dict>
-									<key>Value</key>
-									<dict>
-										<key>string</key>
-										<string>unit</string>
-										<key>attachmentsByRange</key>
-										<dict/>
-									</dict>
-									<key>WFSerializationType</key>
-									<string>WFTextTokenString</string>
-								</dict>
-								<key>WFValue</key>
-								<dict>
-									<key>Value</key>
-									<dict>
-										<key>string</key>
-										<string>￼</string>
-										<key>attachmentsByRange</key>
-										<dict>
-											<key>{0, 1}</key>
-											<dict>
-												<key>Type</key>
-												<string>ActionOutput</string>
-												<key>OutputUUID</key>
-												<string>15647AC0-7B30-5032-86C0-CFFB91C9F31B</string>
-												<key>OutputName</key>
-												<string>steps-unit</string>
-											</dict>
-										</dict>
-									</dict>
-									<key>WFSerializationType</key>
-									<string>WFTextTokenString</string>
-								</dict>
-							</dict>
-							<dict>
-								<key>WFItemType</key>
-								<integer>0</integer>
-								<key>WFKey</key>
-								<dict>
-									<key>Value</key>
-									<dict>
-										<key>string</key>
-										<string>source</string>
-										<key>attachmentsByRange</key>
-										<dict/>
-									</dict>
-									<key>WFSerializationType</key>
-									<string>WFTextTokenString</string>
-								</dict>
-								<key>WFValue</key>
-								<dict>
-									<key>Value</key>
-									<dict>
-										<key>string</key>
-										<string>￼</string>
-										<key>attachmentsByRange</key>
-										<dict>
-											<key>{0, 1}</key>
-											<dict>
-												<key>Type</key>
-												<string>ActionOutput</string>
-												<key>OutputUUID</key>
-												<string>47F5F590-D77F-581A-B4BC-136AFE9E9FED</string>
-												<key>OutputName</key>
-												<string>steps-source</string>
-											</dict>
-										</dict>
-									</dict>
-									<key>WFSerializationType</key>
-									<string>WFTextTokenString</string>
-								</dict>
-							</dict>
-						</array>
-					</dict>
-					<key>WFSerializationType</key>
-					<string>WFDictionaryFieldValue</string>
-				</dict>
-			</dict>
-		</dict>
-		<dict>
-			<key>WFWorkflowActionIdentifier</key>
-			<string>is.workflow.actions.gettext</string>
-			<key>WFWorkflowActionParameters</key>
-			<dict>
-				<key>UUID</key>
-				<string>9C74BAA9-9D67-5394-9AAF-7C137C066DA9</string>
-				<key>WFTextActionText</key>
-				<dict>
-					<key>Value</key>
-					<dict>
-						<key>string</key>
-						<string>￼</string>
-						<key>attachmentsByRange</key>
-						<dict>
-							<key>{0, 1}</key>
-							<dict>
-								<key>Type</key>
-								<string>ActionOutput</string>
-								<key>OutputUUID</key>
-								<string>8D336B81-29F6-5391-AEA4-C83C4BA00D6D</string>
-								<key>OutputName</key>
-								<string>Dictionary</string>
-							</dict>
-						</dict>
-					</dict>
-					<key>WFSerializationType</key>
-					<string>WFTextTokenString</string>
-				</dict>
-			</dict>
-		</dict>
-		<dict>
-			<key>WFWorkflowActionIdentifier</key>
-			<string>is.workflow.actions.repeat.each</string>
-			<key>WFWorkflowActionParameters</key>
-			<dict>
-				<key>UUID</key>
-				<string>3311B910-0C29-5508-ADC8-55EF704E9A7A</string>
-				<key>GroupingIdentifier</key>
-				<string>D4D014D9-5370-520B-BF52-B229F55A99A2</string>
-				<key>WFControlFlowMode</key>
-				<integer>2</integer>
 			</dict>
 		</dict>
 		<dict>
@@ -590,7 +191,7 @@ After the first run, compare the imported steps with Health. An empty export doe
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>8E02FCBA-B707-569A-B103-F6D8D79CA94D</string>
+				<string>5CC78A72-B5DA-5781-B37B-82C08D0DB1BB</string>
 				<key>text</key>
 				<dict>
 					<key>Value</key>
@@ -598,17 +199,244 @@ After the first run, compare the imported steps with Health. An empty export doe
 						<key>Type</key>
 						<string>ActionOutput</string>
 						<key>OutputUUID</key>
-						<string>3311B910-0C29-5508-ADC8-55EF704E9A7A</string>
+						<string>B4CB0CE9-B115-5247-B666-637025BDC4FC</string>
 						<key>OutputName</key>
-						<string>Repeat Results</string>
+						<string>Formatted Date</string>
 					</dict>
 					<key>WFSerializationType</key>
 					<string>WFTextTokenAttachment</string>
 				</dict>
 				<key>WFTextSeparator</key>
+				<string>New Lines</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>WFWorkflowActionIdentifier</key>
+			<string>is.workflow.actions.properties.health.quantity</string>
+			<key>WFWorkflowActionParameters</key>
+			<dict>
+				<key>UUID</key>
+				<string>E22CE2B1-856E-557C-9F3A-0618E2C75B21</string>
+				<key>WFContentItemPropertyName</key>
+				<string>End Date</string>
+				<key>WFInput</key>
+				<dict>
+					<key>Value</key>
+					<dict>
+						<key>Type</key>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>B94ECF70-6B68-5A57-9B98-183478879898</string>
+						<key>OutputName</key>
+						<string>Health Samples</string>
+					</dict>
+					<key>WFSerializationType</key>
+					<string>WFTextTokenAttachment</string>
+				</dict>
+			</dict>
+		</dict>
+		<dict>
+			<key>WFWorkflowActionIdentifier</key>
+			<string>is.workflow.actions.format.date</string>
+			<key>WFWorkflowActionParameters</key>
+			<dict>
+				<key>UUID</key>
+				<string>92467C28-685E-5BC0-A17F-836D4882B0B9</string>
+				<key>WFDate</key>
+				<dict>
+					<key>Value</key>
+					<dict>
+						<key>Type</key>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>E22CE2B1-856E-557C-9F3A-0618E2C75B21</string>
+						<key>OutputName</key>
+						<string>Details of Health Samples</string>
+					</dict>
+					<key>WFSerializationType</key>
+					<string>WFTextTokenAttachment</string>
+				</dict>
+				<key>WFDateFormatStyle</key>
 				<string>Custom</string>
-				<key>WFTextCustomSeparator</key>
-				<string>,</string>
+				<key>WFDateFormat</key>
+				<string>yyyy-MM-dd'T'HH:mm:ssXXXXX</string>
+				<key>WFLocale</key>
+				<string>en_US_POSIX</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>WFWorkflowActionIdentifier</key>
+			<string>is.workflow.actions.text.combine</string>
+			<key>WFWorkflowActionParameters</key>
+			<dict>
+				<key>UUID</key>
+				<string>EF4C6181-D8DA-5275-99B1-19DC3AA8605A</string>
+				<key>text</key>
+				<dict>
+					<key>Value</key>
+					<dict>
+						<key>Type</key>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>92467C28-685E-5BC0-A17F-836D4882B0B9</string>
+						<key>OutputName</key>
+						<string>Formatted Date</string>
+					</dict>
+					<key>WFSerializationType</key>
+					<string>WFTextTokenAttachment</string>
+				</dict>
+				<key>WFTextSeparator</key>
+				<string>New Lines</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>WFWorkflowActionIdentifier</key>
+			<string>is.workflow.actions.properties.health.quantity</string>
+			<key>WFWorkflowActionParameters</key>
+			<dict>
+				<key>UUID</key>
+				<string>B8CE1DC0-E934-58B4-A19D-192E77233728</string>
+				<key>WFContentItemPropertyName</key>
+				<string>Value</string>
+				<key>WFInput</key>
+				<dict>
+					<key>Value</key>
+					<dict>
+						<key>Type</key>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>B94ECF70-6B68-5A57-9B98-183478879898</string>
+						<key>OutputName</key>
+						<string>Health Samples</string>
+					</dict>
+					<key>WFSerializationType</key>
+					<string>WFTextTokenAttachment</string>
+				</dict>
+			</dict>
+		</dict>
+		<dict>
+			<key>WFWorkflowActionIdentifier</key>
+			<string>is.workflow.actions.text.combine</string>
+			<key>WFWorkflowActionParameters</key>
+			<dict>
+				<key>UUID</key>
+				<string>3BD98539-B86B-5C03-943E-1588DED55100</string>
+				<key>text</key>
+				<dict>
+					<key>Value</key>
+					<dict>
+						<key>Type</key>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>B8CE1DC0-E934-58B4-A19D-192E77233728</string>
+						<key>OutputName</key>
+						<string>Details of Health Samples</string>
+					</dict>
+					<key>WFSerializationType</key>
+					<string>WFTextTokenAttachment</string>
+				</dict>
+				<key>WFTextSeparator</key>
+				<string>New Lines</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>WFWorkflowActionIdentifier</key>
+			<string>is.workflow.actions.properties.health.quantity</string>
+			<key>WFWorkflowActionParameters</key>
+			<dict>
+				<key>UUID</key>
+				<string>52E73AB0-B557-5C7B-A5BA-AB82F4E1D5CD</string>
+				<key>WFContentItemPropertyName</key>
+				<string>Unit</string>
+				<key>WFInput</key>
+				<dict>
+					<key>Value</key>
+					<dict>
+						<key>Type</key>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>B94ECF70-6B68-5A57-9B98-183478879898</string>
+						<key>OutputName</key>
+						<string>Health Samples</string>
+					</dict>
+					<key>WFSerializationType</key>
+					<string>WFTextTokenAttachment</string>
+				</dict>
+			</dict>
+		</dict>
+		<dict>
+			<key>WFWorkflowActionIdentifier</key>
+			<string>is.workflow.actions.text.combine</string>
+			<key>WFWorkflowActionParameters</key>
+			<dict>
+				<key>UUID</key>
+				<string>EE12B9A1-0186-533F-89E4-446B91EAA7BC</string>
+				<key>text</key>
+				<dict>
+					<key>Value</key>
+					<dict>
+						<key>Type</key>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>52E73AB0-B557-5C7B-A5BA-AB82F4E1D5CD</string>
+						<key>OutputName</key>
+						<string>Details of Health Samples</string>
+					</dict>
+					<key>WFSerializationType</key>
+					<string>WFTextTokenAttachment</string>
+				</dict>
+				<key>WFTextSeparator</key>
+				<string>New Lines</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>WFWorkflowActionIdentifier</key>
+			<string>is.workflow.actions.properties.health.quantity</string>
+			<key>WFWorkflowActionParameters</key>
+			<dict>
+				<key>UUID</key>
+				<string>F1D227E1-6850-5F6C-8BB6-806B9300B9F6</string>
+				<key>WFContentItemPropertyName</key>
+				<string>Source</string>
+				<key>WFInput</key>
+				<dict>
+					<key>Value</key>
+					<dict>
+						<key>Type</key>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>B94ECF70-6B68-5A57-9B98-183478879898</string>
+						<key>OutputName</key>
+						<string>Health Samples</string>
+					</dict>
+					<key>WFSerializationType</key>
+					<string>WFTextTokenAttachment</string>
+				</dict>
+			</dict>
+		</dict>
+		<dict>
+			<key>WFWorkflowActionIdentifier</key>
+			<string>is.workflow.actions.text.combine</string>
+			<key>WFWorkflowActionParameters</key>
+			<dict>
+				<key>UUID</key>
+				<string>7962A779-59F9-5D4C-8C3F-A84F201887B4</string>
+				<key>text</key>
+				<dict>
+					<key>Value</key>
+					<dict>
+						<key>Type</key>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>F1D227E1-6850-5F6C-8BB6-806B9300B9F6</string>
+						<key>OutputName</key>
+						<string>Details of Health Samples</string>
+					</dict>
+					<key>WFSerializationType</key>
+					<string>WFTextTokenAttachment</string>
+				</dict>
+				<key>WFTextSeparator</key>
+				<string>New Lines</string>
 			</dict>
 		</dict>
 		<dict>
@@ -617,7 +445,7 @@ After the first run, compare the imported steps with Health. An empty export doe
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>CEC28D30-DD8D-5C1D-A4AC-AE41C36272E9</string>
+				<string>FD1C88D9-773F-59BE-86F4-E643D5E90541</string>
 				<key>WFContentItemFilter</key>
 				<dict>
 					<key>Value</key>
@@ -652,7 +480,7 @@ After the first run, compare the imported steps with Health. An empty export doe
 								<key>Bounded</key>
 								<true/>
 								<key>Operator</key>
-								<integer>1001</integer>
+								<integer>1002</integer>
 								<key>Property</key>
 								<string>Start Date</string>
 								<key>Removable</key>
@@ -660,7 +488,7 @@ After the first run, compare the imported steps with Health. An empty export doe
 								<key>Values</key>
 								<dict>
 									<key>Number</key>
-									<integer>8</integer>
+									<string>7</string>
 									<key>Unit</key>
 									<integer>16</integer>
 								</dict>
@@ -671,28 +499,28 @@ After the first run, compare the imported steps with Health. An empty export doe
 					<string>WFContentPredicateTableTemplate</string>
 				</dict>
 				<key>WFContentItemLimitEnabled</key>
-				<false/>
+				<true/>
+				<key>WFContentItemLimitNumber</key>
+				<integer>2000</integer>
 			</dict>
 		</dict>
 		<dict>
 			<key>WFWorkflowActionIdentifier</key>
-			<string>is.workflow.actions.repeat.each</string>
+			<string>is.workflow.actions.count</string>
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>E919A983-FB01-5C2B-97B8-F62863F21C11</string>
-				<key>GroupingIdentifier</key>
-				<string>740A62FC-87EF-5C27-BA8D-7348C3F88791</string>
-				<key>WFControlFlowMode</key>
-				<integer>0</integer>
-				<key>WFInput</key>
+				<string>EF7A02BA-0082-5564-BDC5-C9FFCE014AC9</string>
+				<key>WFCountType</key>
+				<string>Items</string>
+				<key>Input</key>
 				<dict>
 					<key>Value</key>
 					<dict>
 						<key>Type</key>
 						<string>ActionOutput</string>
 						<key>OutputUUID</key>
-						<string>CEC28D30-DD8D-5C1D-A4AC-AE41C36272E9</string>
+						<string>FD1C88D9-773F-59BE-86F4-E643D5E90541</string>
 						<key>OutputName</key>
 						<string>Health Samples</string>
 					</dict>
@@ -707,7 +535,7 @@ After the first run, compare the imported steps with Health. An empty export doe
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>F1A76140-DC6E-5EF7-8DEB-2C2EED39C82E</string>
+				<string>4FDDF7AE-D9A1-5CB1-A1B4-6F12F35851F9</string>
 				<key>WFContentItemPropertyName</key>
 				<string>Start Date</string>
 				<key>WFInput</key>
@@ -715,9 +543,11 @@ After the first run, compare the imported steps with Health. An empty export doe
 					<key>Value</key>
 					<dict>
 						<key>Type</key>
-						<string>Variable</string>
-						<key>VariableName</key>
-						<string>Repeat Item</string>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>FD1C88D9-773F-59BE-86F4-E643D5E90541</string>
+						<key>OutputName</key>
+						<string>Health Samples</string>
 					</dict>
 					<key>WFSerializationType</key>
 					<string>WFTextTokenAttachment</string>
@@ -730,28 +560,20 @@ After the first run, compare the imported steps with Health. An empty export doe
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>2C5A98E7-0284-59E0-BD89-D9530BAC586F</string>
+				<string>19FC809D-DB42-5841-B3B6-966E1957D2DC</string>
 				<key>WFDate</key>
 				<dict>
 					<key>Value</key>
 					<dict>
-						<key>string</key>
-						<string>￼</string>
-						<key>attachmentsByRange</key>
-						<dict>
-							<key>{0, 1}</key>
-							<dict>
-								<key>Type</key>
-								<string>ActionOutput</string>
-								<key>OutputUUID</key>
-								<string>F1A76140-DC6E-5EF7-8DEB-2C2EED39C82E</string>
-								<key>OutputName</key>
-								<string>distance-start</string>
-							</dict>
-						</dict>
+						<key>Type</key>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>4FDDF7AE-D9A1-5CB1-A1B4-6F12F35851F9</string>
+						<key>OutputName</key>
+						<string>Details of Health Samples</string>
 					</dict>
 					<key>WFSerializationType</key>
-					<string>WFTextTokenString</string>
+					<string>WFTextTokenAttachment</string>
 				</dict>
 				<key>WFDateFormatStyle</key>
 				<string>Custom</string>
@@ -763,11 +585,36 @@ After the first run, compare the imported steps with Health. An empty export doe
 		</dict>
 		<dict>
 			<key>WFWorkflowActionIdentifier</key>
+			<string>is.workflow.actions.text.combine</string>
+			<key>WFWorkflowActionParameters</key>
+			<dict>
+				<key>UUID</key>
+				<string>A93114F0-1BC7-5BCE-B32E-31C44498E521</string>
+				<key>text</key>
+				<dict>
+					<key>Value</key>
+					<dict>
+						<key>Type</key>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>19FC809D-DB42-5841-B3B6-966E1957D2DC</string>
+						<key>OutputName</key>
+						<string>Formatted Date</string>
+					</dict>
+					<key>WFSerializationType</key>
+					<string>WFTextTokenAttachment</string>
+				</dict>
+				<key>WFTextSeparator</key>
+				<string>New Lines</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>WFWorkflowActionIdentifier</key>
 			<string>is.workflow.actions.properties.health.quantity</string>
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>0D7F1FA6-0A66-5D8D-BE5A-417993375EED</string>
+				<string>DD31FC43-576D-552D-9B18-A9517C83112C</string>
 				<key>WFContentItemPropertyName</key>
 				<string>End Date</string>
 				<key>WFInput</key>
@@ -775,9 +622,11 @@ After the first run, compare the imported steps with Health. An empty export doe
 					<key>Value</key>
 					<dict>
 						<key>Type</key>
-						<string>Variable</string>
-						<key>VariableName</key>
-						<string>Repeat Item</string>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>FD1C88D9-773F-59BE-86F4-E643D5E90541</string>
+						<key>OutputName</key>
+						<string>Health Samples</string>
 					</dict>
 					<key>WFSerializationType</key>
 					<string>WFTextTokenAttachment</string>
@@ -790,28 +639,20 @@ After the first run, compare the imported steps with Health. An empty export doe
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>2D108705-E493-5D64-AD8E-5101E7F2DAD4</string>
+				<string>0B9D3E37-EF28-514E-8823-4F7D6EBEBFF6</string>
 				<key>WFDate</key>
 				<dict>
 					<key>Value</key>
 					<dict>
-						<key>string</key>
-						<string>￼</string>
-						<key>attachmentsByRange</key>
-						<dict>
-							<key>{0, 1}</key>
-							<dict>
-								<key>Type</key>
-								<string>ActionOutput</string>
-								<key>OutputUUID</key>
-								<string>0D7F1FA6-0A66-5D8D-BE5A-417993375EED</string>
-								<key>OutputName</key>
-								<string>distance-end</string>
-							</dict>
-						</dict>
+						<key>Type</key>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>DD31FC43-576D-552D-9B18-A9517C83112C</string>
+						<key>OutputName</key>
+						<string>Details of Health Samples</string>
 					</dict>
 					<key>WFSerializationType</key>
-					<string>WFTextTokenString</string>
+					<string>WFTextTokenAttachment</string>
 				</dict>
 				<key>WFDateFormatStyle</key>
 				<string>Custom</string>
@@ -823,11 +664,36 @@ After the first run, compare the imported steps with Health. An empty export doe
 		</dict>
 		<dict>
 			<key>WFWorkflowActionIdentifier</key>
+			<string>is.workflow.actions.text.combine</string>
+			<key>WFWorkflowActionParameters</key>
+			<dict>
+				<key>UUID</key>
+				<string>BF2E812D-26E5-566C-8ACB-5B0133845EC9</string>
+				<key>text</key>
+				<dict>
+					<key>Value</key>
+					<dict>
+						<key>Type</key>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>0B9D3E37-EF28-514E-8823-4F7D6EBEBFF6</string>
+						<key>OutputName</key>
+						<string>Formatted Date</string>
+					</dict>
+					<key>WFSerializationType</key>
+					<string>WFTextTokenAttachment</string>
+				</dict>
+				<key>WFTextSeparator</key>
+				<string>New Lines</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>WFWorkflowActionIdentifier</key>
 			<string>is.workflow.actions.properties.health.quantity</string>
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>CE97ACEF-3548-5A24-B40E-7BB4E3BCE32E</string>
+				<string>7946041B-91F5-5D95-BC2D-A0AD40A507EB</string>
 				<key>WFContentItemPropertyName</key>
 				<string>Value</string>
 				<key>WFInput</key>
@@ -835,9 +701,11 @@ After the first run, compare the imported steps with Health. An empty export doe
 					<key>Value</key>
 					<dict>
 						<key>Type</key>
-						<string>Variable</string>
-						<key>VariableName</key>
-						<string>Repeat Item</string>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>FD1C88D9-773F-59BE-86F4-E643D5E90541</string>
+						<key>OutputName</key>
+						<string>Health Samples</string>
 					</dict>
 					<key>WFSerializationType</key>
 					<string>WFTextTokenAttachment</string>
@@ -846,11 +714,36 @@ After the first run, compare the imported steps with Health. An empty export doe
 		</dict>
 		<dict>
 			<key>WFWorkflowActionIdentifier</key>
+			<string>is.workflow.actions.text.combine</string>
+			<key>WFWorkflowActionParameters</key>
+			<dict>
+				<key>UUID</key>
+				<string>9A374F63-94D4-59BC-A198-6BAB051FA821</string>
+				<key>text</key>
+				<dict>
+					<key>Value</key>
+					<dict>
+						<key>Type</key>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>7946041B-91F5-5D95-BC2D-A0AD40A507EB</string>
+						<key>OutputName</key>
+						<string>Details of Health Samples</string>
+					</dict>
+					<key>WFSerializationType</key>
+					<string>WFTextTokenAttachment</string>
+				</dict>
+				<key>WFTextSeparator</key>
+				<string>New Lines</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>WFWorkflowActionIdentifier</key>
 			<string>is.workflow.actions.properties.health.quantity</string>
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>692AB94E-0B4D-5C8B-8864-896CB2197D41</string>
+				<string>B22A48A1-D7B8-53CB-9052-073BA04531F5</string>
 				<key>WFContentItemPropertyName</key>
 				<string>Unit</string>
 				<key>WFInput</key>
@@ -858,9 +751,11 @@ After the first run, compare the imported steps with Health. An empty export doe
 					<key>Value</key>
 					<dict>
 						<key>Type</key>
-						<string>Variable</string>
-						<key>VariableName</key>
-						<string>Repeat Item</string>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>FD1C88D9-773F-59BE-86F4-E643D5E90541</string>
+						<key>OutputName</key>
+						<string>Health Samples</string>
 					</dict>
 					<key>WFSerializationType</key>
 					<string>WFTextTokenAttachment</string>
@@ -869,11 +764,36 @@ After the first run, compare the imported steps with Health. An empty export doe
 		</dict>
 		<dict>
 			<key>WFWorkflowActionIdentifier</key>
+			<string>is.workflow.actions.text.combine</string>
+			<key>WFWorkflowActionParameters</key>
+			<dict>
+				<key>UUID</key>
+				<string>E1D92165-CD25-5DED-B7D1-64A0A071BA18</string>
+				<key>text</key>
+				<dict>
+					<key>Value</key>
+					<dict>
+						<key>Type</key>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>B22A48A1-D7B8-53CB-9052-073BA04531F5</string>
+						<key>OutputName</key>
+						<string>Details of Health Samples</string>
+					</dict>
+					<key>WFSerializationType</key>
+					<string>WFTextTokenAttachment</string>
+				</dict>
+				<key>WFTextSeparator</key>
+				<string>New Lines</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>WFWorkflowActionIdentifier</key>
 			<string>is.workflow.actions.properties.health.quantity</string>
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>86FF2D50-2F53-5869-9106-E5B479DB0C8A</string>
+				<string>F79C460A-E31A-56B1-9258-F0580020F631</string>
 				<key>WFContentItemPropertyName</key>
 				<string>Source</string>
 				<key>WFInput</key>
@@ -881,13 +801,40 @@ After the first run, compare the imported steps with Health. An empty export doe
 					<key>Value</key>
 					<dict>
 						<key>Type</key>
-						<string>Variable</string>
-						<key>VariableName</key>
-						<string>Repeat Item</string>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>FD1C88D9-773F-59BE-86F4-E643D5E90541</string>
+						<key>OutputName</key>
+						<string>Health Samples</string>
 					</dict>
 					<key>WFSerializationType</key>
 					<string>WFTextTokenAttachment</string>
 				</dict>
+			</dict>
+		</dict>
+		<dict>
+			<key>WFWorkflowActionIdentifier</key>
+			<string>is.workflow.actions.text.combine</string>
+			<key>WFWorkflowActionParameters</key>
+			<dict>
+				<key>UUID</key>
+				<string>006BD719-D360-55B4-A98A-A5E33D61559C</string>
+				<key>text</key>
+				<dict>
+					<key>Value</key>
+					<dict>
+						<key>Type</key>
+						<string>ActionOutput</string>
+						<key>OutputUUID</key>
+						<string>F79C460A-E31A-56B1-9258-F0580020F631</string>
+						<key>OutputName</key>
+						<string>Details of Health Samples</string>
+					</dict>
+					<key>WFSerializationType</key>
+					<string>WFTextTokenAttachment</string>
+				</dict>
+				<key>WFTextSeparator</key>
+				<string>New Lines</string>
 			</dict>
 		</dict>
 		<dict>
@@ -896,7 +843,7 @@ After the first run, compare the imported steps with Health. An empty export doe
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>D87AADF8-4CC0-5BDF-B62E-0E3ACE77CFDD</string>
+				<string>24B40303-096A-5B14-BB73-7FEA7DAD46B4</string>
 				<key>WFItems</key>
 				<dict>
 					<key>Value</key>
@@ -907,17 +854,15 @@ After the first run, compare the imported steps with Health. An empty export doe
 								<key>WFItemType</key>
 								<integer>0</integer>
 								<key>WFKey</key>
-								<dict>
-									<key>Value</key>
-									<dict>
-										<key>string</key>
-										<string>start</string>
-										<key>attachmentsByRange</key>
-										<dict/>
-									</dict>
-									<key>WFSerializationType</key>
-									<string>WFTextTokenString</string>
-								</dict>
+								<string>format</string>
+								<key>WFValue</key>
+								<string>runlog-health-v2</string>
+							</dict>
+							<dict>
+								<key>WFItemType</key>
+								<integer>0</integer>
+								<key>WFKey</key>
+								<string>generatedAt</string>
 								<key>WFValue</key>
 								<dict>
 									<key>Value</key>
@@ -931,7 +876,7 @@ After the first run, compare the imported steps with Health. An empty export doe
 												<key>Type</key>
 												<string>ActionOutput</string>
 												<key>OutputUUID</key>
-												<string>2C5A98E7-0284-59E0-BD89-D9530BAC586F</string>
+												<string>969FACD1-F3BA-53D3-9163-7F7BD23CA7F9</string>
 												<key>OutputName</key>
 												<string>Formatted Date</string>
 											</dict>
@@ -945,17 +890,15 @@ After the first run, compare the imported steps with Health. An empty export doe
 								<key>WFItemType</key>
 								<integer>0</integer>
 								<key>WFKey</key>
-								<dict>
-									<key>Value</key>
-									<dict>
-										<key>string</key>
-										<string>end</string>
-										<key>attachmentsByRange</key>
-										<dict/>
-									</dict>
-									<key>WFSerializationType</key>
-									<string>WFTextTokenString</string>
-								</dict>
+								<string>sampleLimit</string>
+								<key>WFValue</key>
+								<string>2000</string>
+							</dict>
+							<dict>
+								<key>WFItemType</key>
+								<integer>0</integer>
+								<key>WFKey</key>
+								<string>stepsCount</string>
 								<key>WFValue</key>
 								<dict>
 									<key>Value</key>
@@ -969,9 +912,9 @@ After the first run, compare the imported steps with Health. An empty export doe
 												<key>Type</key>
 												<string>ActionOutput</string>
 												<key>OutputUUID</key>
-												<string>2D108705-E493-5D64-AD8E-5101E7F2DAD4</string>
+												<string>2AC13307-8E21-5ADD-AAF6-A758D7B910C0</string>
 												<key>OutputName</key>
-												<string>Formatted Date</string>
+												<string>Count</string>
 											</dict>
 										</dict>
 									</dict>
@@ -983,17 +926,7 @@ After the first run, compare the imported steps with Health. An empty export doe
 								<key>WFItemType</key>
 								<integer>0</integer>
 								<key>WFKey</key>
-								<dict>
-									<key>Value</key>
-									<dict>
-										<key>string</key>
-										<string>value</string>
-										<key>attachmentsByRange</key>
-										<dict/>
-									</dict>
-									<key>WFSerializationType</key>
-									<string>WFTextTokenString</string>
-								</dict>
+								<string>steps_start</string>
 								<key>WFValue</key>
 								<dict>
 									<key>Value</key>
@@ -1007,9 +940,9 @@ After the first run, compare the imported steps with Health. An empty export doe
 												<key>Type</key>
 												<string>ActionOutput</string>
 												<key>OutputUUID</key>
-												<string>CE97ACEF-3548-5A24-B40E-7BB4E3BCE32E</string>
+												<string>5CC78A72-B5DA-5781-B37B-82C08D0DB1BB</string>
 												<key>OutputName</key>
-												<string>distance-value</string>
+												<string>Combined Text</string>
 											</dict>
 										</dict>
 									</dict>
@@ -1021,17 +954,7 @@ After the first run, compare the imported steps with Health. An empty export doe
 								<key>WFItemType</key>
 								<integer>0</integer>
 								<key>WFKey</key>
-								<dict>
-									<key>Value</key>
-									<dict>
-										<key>string</key>
-										<string>unit</string>
-										<key>attachmentsByRange</key>
-										<dict/>
-									</dict>
-									<key>WFSerializationType</key>
-									<string>WFTextTokenString</string>
-								</dict>
+								<string>steps_end</string>
 								<key>WFValue</key>
 								<dict>
 									<key>Value</key>
@@ -1045,9 +968,9 @@ After the first run, compare the imported steps with Health. An empty export doe
 												<key>Type</key>
 												<string>ActionOutput</string>
 												<key>OutputUUID</key>
-												<string>692AB94E-0B4D-5C8B-8864-896CB2197D41</string>
+												<string>EF4C6181-D8DA-5275-99B1-19DC3AA8605A</string>
 												<key>OutputName</key>
-												<string>distance-unit</string>
+												<string>Combined Text</string>
 											</dict>
 										</dict>
 									</dict>
@@ -1059,17 +982,7 @@ After the first run, compare the imported steps with Health. An empty export doe
 								<key>WFItemType</key>
 								<integer>0</integer>
 								<key>WFKey</key>
-								<dict>
-									<key>Value</key>
-									<dict>
-										<key>string</key>
-										<string>source</string>
-										<key>attachmentsByRange</key>
-										<dict/>
-									</dict>
-									<key>WFSerializationType</key>
-									<string>WFTextTokenString</string>
-								</dict>
+								<string>steps_value</string>
 								<key>WFValue</key>
 								<dict>
 									<key>Value</key>
@@ -1083,9 +996,233 @@ After the first run, compare the imported steps with Health. An empty export doe
 												<key>Type</key>
 												<string>ActionOutput</string>
 												<key>OutputUUID</key>
-												<string>86FF2D50-2F53-5869-9106-E5B479DB0C8A</string>
+												<string>3BD98539-B86B-5C03-943E-1588DED55100</string>
 												<key>OutputName</key>
-												<string>distance-source</string>
+												<string>Combined Text</string>
+											</dict>
+										</dict>
+									</dict>
+									<key>WFSerializationType</key>
+									<string>WFTextTokenString</string>
+								</dict>
+							</dict>
+							<dict>
+								<key>WFItemType</key>
+								<integer>0</integer>
+								<key>WFKey</key>
+								<string>steps_unit</string>
+								<key>WFValue</key>
+								<dict>
+									<key>Value</key>
+									<dict>
+										<key>string</key>
+										<string>￼</string>
+										<key>attachmentsByRange</key>
+										<dict>
+											<key>{0, 1}</key>
+											<dict>
+												<key>Type</key>
+												<string>ActionOutput</string>
+												<key>OutputUUID</key>
+												<string>EE12B9A1-0186-533F-89E4-446B91EAA7BC</string>
+												<key>OutputName</key>
+												<string>Combined Text</string>
+											</dict>
+										</dict>
+									</dict>
+									<key>WFSerializationType</key>
+									<string>WFTextTokenString</string>
+								</dict>
+							</dict>
+							<dict>
+								<key>WFItemType</key>
+								<integer>0</integer>
+								<key>WFKey</key>
+								<string>steps_source</string>
+								<key>WFValue</key>
+								<dict>
+									<key>Value</key>
+									<dict>
+										<key>string</key>
+										<string>￼</string>
+										<key>attachmentsByRange</key>
+										<dict>
+											<key>{0, 1}</key>
+											<dict>
+												<key>Type</key>
+												<string>ActionOutput</string>
+												<key>OutputUUID</key>
+												<string>7962A779-59F9-5D4C-8C3F-A84F201887B4</string>
+												<key>OutputName</key>
+												<string>Combined Text</string>
+											</dict>
+										</dict>
+									</dict>
+									<key>WFSerializationType</key>
+									<string>WFTextTokenString</string>
+								</dict>
+							</dict>
+							<dict>
+								<key>WFItemType</key>
+								<integer>0</integer>
+								<key>WFKey</key>
+								<string>distanceCount</string>
+								<key>WFValue</key>
+								<dict>
+									<key>Value</key>
+									<dict>
+										<key>string</key>
+										<string>￼</string>
+										<key>attachmentsByRange</key>
+										<dict>
+											<key>{0, 1}</key>
+											<dict>
+												<key>Type</key>
+												<string>ActionOutput</string>
+												<key>OutputUUID</key>
+												<string>EF7A02BA-0082-5564-BDC5-C9FFCE014AC9</string>
+												<key>OutputName</key>
+												<string>Count</string>
+											</dict>
+										</dict>
+									</dict>
+									<key>WFSerializationType</key>
+									<string>WFTextTokenString</string>
+								</dict>
+							</dict>
+							<dict>
+								<key>WFItemType</key>
+								<integer>0</integer>
+								<key>WFKey</key>
+								<string>distance_start</string>
+								<key>WFValue</key>
+								<dict>
+									<key>Value</key>
+									<dict>
+										<key>string</key>
+										<string>￼</string>
+										<key>attachmentsByRange</key>
+										<dict>
+											<key>{0, 1}</key>
+											<dict>
+												<key>Type</key>
+												<string>ActionOutput</string>
+												<key>OutputUUID</key>
+												<string>A93114F0-1BC7-5BCE-B32E-31C44498E521</string>
+												<key>OutputName</key>
+												<string>Combined Text</string>
+											</dict>
+										</dict>
+									</dict>
+									<key>WFSerializationType</key>
+									<string>WFTextTokenString</string>
+								</dict>
+							</dict>
+							<dict>
+								<key>WFItemType</key>
+								<integer>0</integer>
+								<key>WFKey</key>
+								<string>distance_end</string>
+								<key>WFValue</key>
+								<dict>
+									<key>Value</key>
+									<dict>
+										<key>string</key>
+										<string>￼</string>
+										<key>attachmentsByRange</key>
+										<dict>
+											<key>{0, 1}</key>
+											<dict>
+												<key>Type</key>
+												<string>ActionOutput</string>
+												<key>OutputUUID</key>
+												<string>BF2E812D-26E5-566C-8ACB-5B0133845EC9</string>
+												<key>OutputName</key>
+												<string>Combined Text</string>
+											</dict>
+										</dict>
+									</dict>
+									<key>WFSerializationType</key>
+									<string>WFTextTokenString</string>
+								</dict>
+							</dict>
+							<dict>
+								<key>WFItemType</key>
+								<integer>0</integer>
+								<key>WFKey</key>
+								<string>distance_value</string>
+								<key>WFValue</key>
+								<dict>
+									<key>Value</key>
+									<dict>
+										<key>string</key>
+										<string>￼</string>
+										<key>attachmentsByRange</key>
+										<dict>
+											<key>{0, 1}</key>
+											<dict>
+												<key>Type</key>
+												<string>ActionOutput</string>
+												<key>OutputUUID</key>
+												<string>9A374F63-94D4-59BC-A198-6BAB051FA821</string>
+												<key>OutputName</key>
+												<string>Combined Text</string>
+											</dict>
+										</dict>
+									</dict>
+									<key>WFSerializationType</key>
+									<string>WFTextTokenString</string>
+								</dict>
+							</dict>
+							<dict>
+								<key>WFItemType</key>
+								<integer>0</integer>
+								<key>WFKey</key>
+								<string>distance_unit</string>
+								<key>WFValue</key>
+								<dict>
+									<key>Value</key>
+									<dict>
+										<key>string</key>
+										<string>￼</string>
+										<key>attachmentsByRange</key>
+										<dict>
+											<key>{0, 1}</key>
+											<dict>
+												<key>Type</key>
+												<string>ActionOutput</string>
+												<key>OutputUUID</key>
+												<string>E1D92165-CD25-5DED-B7D1-64A0A071BA18</string>
+												<key>OutputName</key>
+												<string>Combined Text</string>
+											</dict>
+										</dict>
+									</dict>
+									<key>WFSerializationType</key>
+									<string>WFTextTokenString</string>
+								</dict>
+							</dict>
+							<dict>
+								<key>WFItemType</key>
+								<integer>0</integer>
+								<key>WFKey</key>
+								<string>distance_source</string>
+								<key>WFValue</key>
+								<dict>
+									<key>Value</key>
+									<dict>
+										<key>string</key>
+										<string>￼</string>
+										<key>attachmentsByRange</key>
+										<dict>
+											<key>{0, 1}</key>
+											<dict>
+												<key>Type</key>
+												<string>ActionOutput</string>
+												<key>OutputUUID</key>
+												<string>006BD719-D360-55B4-A98A-A5E33D61559C</string>
+												<key>OutputName</key>
+												<string>Combined Text</string>
 											</dict>
 										</dict>
 									</dict>
@@ -1106,7 +1243,7 @@ After the first run, compare the imported steps with Health. An empty export doe
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>E5DCA014-71BA-5717-976A-2F1607E1CC82</string>
+				<string>51D3FA60-113B-513E-B888-30D3C9ABA104</string>
 				<key>WFTextActionText</key>
 				<dict>
 					<key>Value</key>
@@ -1120,98 +1257,9 @@ After the first run, compare the imported steps with Health. An empty export doe
 								<key>Type</key>
 								<string>ActionOutput</string>
 								<key>OutputUUID</key>
-								<string>D87AADF8-4CC0-5BDF-B62E-0E3ACE77CFDD</string>
+								<string>24B40303-096A-5B14-BB73-7FEA7DAD46B4</string>
 								<key>OutputName</key>
 								<string>Dictionary</string>
-							</dict>
-						</dict>
-					</dict>
-					<key>WFSerializationType</key>
-					<string>WFTextTokenString</string>
-				</dict>
-			</dict>
-		</dict>
-		<dict>
-			<key>WFWorkflowActionIdentifier</key>
-			<string>is.workflow.actions.repeat.each</string>
-			<key>WFWorkflowActionParameters</key>
-			<dict>
-				<key>UUID</key>
-				<string>E543EDED-18C9-5C61-B648-54DA31C1CE99</string>
-				<key>GroupingIdentifier</key>
-				<string>740A62FC-87EF-5C27-BA8D-7348C3F88791</string>
-				<key>WFControlFlowMode</key>
-				<integer>2</integer>
-			</dict>
-		</dict>
-		<dict>
-			<key>WFWorkflowActionIdentifier</key>
-			<string>is.workflow.actions.text.combine</string>
-			<key>WFWorkflowActionParameters</key>
-			<dict>
-				<key>UUID</key>
-				<string>F626FEAF-C414-5202-9E19-E50F380CC2C1</string>
-				<key>text</key>
-				<dict>
-					<key>Value</key>
-					<dict>
-						<key>Type</key>
-						<string>ActionOutput</string>
-						<key>OutputUUID</key>
-						<string>E543EDED-18C9-5C61-B648-54DA31C1CE99</string>
-						<key>OutputName</key>
-						<string>Repeat Results</string>
-					</dict>
-					<key>WFSerializationType</key>
-					<string>WFTextTokenAttachment</string>
-				</dict>
-				<key>WFTextSeparator</key>
-				<string>Custom</string>
-				<key>WFTextCustomSeparator</key>
-				<string>,</string>
-			</dict>
-		</dict>
-		<dict>
-			<key>WFWorkflowActionIdentifier</key>
-			<string>is.workflow.actions.gettext</string>
-			<key>WFWorkflowActionParameters</key>
-			<dict>
-				<key>UUID</key>
-				<string>F8AF5C80-50FD-54DA-A21B-F45D8F0AEDF8</string>
-				<key>WFTextActionText</key>
-				<dict>
-					<key>Value</key>
-					<dict>
-						<key>string</key>
-						<string>{"format":"runlog-health-v1","generatedAt":"￼","steps":[￼],"distance":[￼]}</string>
-						<key>attachmentsByRange</key>
-						<dict>
-							<key>{44, 1}</key>
-							<dict>
-								<key>Type</key>
-								<string>ActionOutput</string>
-								<key>OutputUUID</key>
-								<string>CAE2E566-8039-5D0F-8EA2-618622387B94</string>
-								<key>OutputName</key>
-								<string>Formatted Date</string>
-							</dict>
-							<key>{56, 1}</key>
-							<dict>
-								<key>Type</key>
-								<string>ActionOutput</string>
-								<key>OutputUUID</key>
-								<string>8E02FCBA-B707-569A-B103-F6D8D79CA94D</string>
-								<key>OutputName</key>
-								<string>Combined Text</string>
-							</dict>
-							<key>{71, 1}</key>
-							<dict>
-								<key>Type</key>
-								<string>ActionOutput</string>
-								<key>OutputUUID</key>
-								<string>F626FEAF-C414-5202-9E19-E50F380CC2C1</string>
-								<key>OutputName</key>
-								<string>Combined Text</string>
 							</dict>
 						</dict>
 					</dict>
@@ -1226,7 +1274,7 @@ After the first run, compare the imported steps with Health. An empty export doe
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>3A7FD097-E477-5F14-BDE8-F49C3AAF6342</string>
+				<string>D0067CCB-8A4D-5A5F-A1D6-42DDA9FC0A56</string>
 				<key>WFInput</key>
 				<dict>
 					<key>Value</key>
@@ -1234,7 +1282,7 @@ After the first run, compare the imported steps with Health. An empty export doe
 						<key>Type</key>
 						<string>ActionOutput</string>
 						<key>OutputUUID</key>
-						<string>F8AF5C80-50FD-54DA-A21B-F45D8F0AEDF8</string>
+						<string>51D3FA60-113B-513E-B888-30D3C9ABA104</string>
 						<key>OutputName</key>
 						<string>Text</string>
 					</dict>
@@ -1251,7 +1299,7 @@ After the first run, compare the imported steps with Health. An empty export doe
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>345C551A-E48C-5D3B-81DC-862A4E11BE2F</string>
+				<string>D3EC1916-F501-51FA-B3C4-A30B6B7E1F62</string>
 				<key>WFInput</key>
 				<dict>
 					<key>Value</key>
@@ -1259,7 +1307,7 @@ After the first run, compare the imported steps with Health. An empty export doe
 						<key>Type</key>
 						<string>ActionOutput</string>
 						<key>OutputUUID</key>
-						<string>3A7FD097-E477-5F14-BDE8-F49C3AAF6342</string>
+						<string>D0067CCB-8A4D-5A5F-A1D6-42DDA9FC0A56</string>
 						<key>OutputName</key>
 						<string>Renamed Item</string>
 					</dict>
@@ -1272,6 +1320,21 @@ After the first run, compare the imported steps with Health. An empty export doe
 				<string>runlog-health.json</string>
 				<key>WFSaveFileOverwrite</key>
 				<true/>
+			</dict>
+		</dict>
+		<dict>
+			<key>WFWorkflowActionIdentifier</key>
+			<string>is.workflow.actions.notification</string>
+			<key>WFWorkflowActionParameters</key>
+			<dict>
+				<key>UUID</key>
+				<string>C1E6D0BC-85AC-55D8-9034-7B77911D3418</string>
+				<key>WFNotificationActionTitle</key>
+				<string>RUNLOG</string>
+				<key>WFNotificationActionBody</key>
+				<string>Activity export saved to iCloud Drive/Shortcuts.</string>
+				<key>WFNotificationActionSound</key>
+				<false/>
 			</dict>
 		</dict>
 	</array>

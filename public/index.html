@@ -22,7 +22,7 @@
       <div class="sidebar-bottom">
         <span class="dot"></span> Данные на твоём компьютере
         <p>Тренировки · Активность · Фото</p>
-        <span class="version">RUNLOG / V.02</span>
+        <span class="version">RUNLOG / V.03</span>
       </div>
     </aside>
     <main>
@@ -48,6 +48,18 @@
             ＋ Добавить тренировку
           </button>
         </div>
+        <article class="panel run-panel">
+          <div><span class="eyebrow">ПРОБЕЖКА СЕГОДНЯ</span><h2 id="run-label">Готов к старту</h2>
+          <p class="caption">Таймер сохраняется на Mac. Дистанцию добавишь после финиша.</p></div>
+          <strong id="run-clock" class="run-clock">00:00</strong>
+          <div class="run-buttons">
+            <button class="button primary" id="run-start">Начать пробежку</button>
+            <button class="button" id="run-pause" hidden>Пауза</button>
+            <button class="button primary" id="run-resume" hidden>Продолжить</button>
+            <button class="button lime" id="run-finish" hidden>Финиш</button>
+            <button class="text-button" id="run-discard" hidden>Сбросить</button>
+          </div>
+        </article>
         <div class="stats">
           <article>
             <span>Тренировки</span><strong id="stat-count">0</strong
@@ -122,13 +134,15 @@
               инструменты расчёта.
             </p>
             <div class="suggestions">
-              <button data-question="Что есть в моей истории тренировок?">
+              <button data-report="history">
                 Что уже есть в дневнике? ↗</button
               ><button
-                data-question="Сколько шагов у меня за последние 7 дней?"
+                data-report="activity"
               >
                 Мои шаги за неделю ↗
               </button>
+              <button data-report="progress">Сводка за месяц ↗</button>
+              <button data-report="compare">Сравнить пробежки ↗</button>
             </div>
             <div
               id="agent-messages"
@@ -181,63 +195,34 @@
         </article>
       </section>
       <section id="connections" class="view" hidden>
-        <div class="page-title">
-          <div>
-            <div class="eyebrow">ИСТОЧНИКИ ДАННЫХ</div>
-            <h1>Подключения<span>.</span></h1>
-            <p>iPhone → iCloud Drive → RUNLOG.</p>
-          </div>
-        </div>
-        <article class="panel">
-          <h2>Apple Health через «Команды»</h2>
-          <ol class="setup-steps">
-            <li>
-              Передай
-              <a
-                href="/downloads/health-sync.shortcut"
-                download="RUNLOG Health Sync.shortcut"
-                >RUNLOG Health Sync.shortcut</a
-              >
-              на iPhone, например через AirDrop, и добавь в «Команды».
-            </li>
-            <li>
-              Запусти на iPhone. Разреши чтение шагов и дистанции ходьбы и бега.
-              В действии «Сохранить файл» проверь папку iCloud Drive /
-              Shortcuts, имя runlog-health.json и замену существующего файла.
-            </li>
-            <li>
-              В «Команды → Автоматизация» добавь запуск RUNLOG Health Sync при
-              открытии Telegram. Выбери немедленное выполнение. Первый запуск
-              выполни вручную на разблокированном iPhone.
-            </li>
-            <li>
-              Оставь RUNLOG запущенным на Mac. После появления файла в iCloud
-              данные обновятся в течение 15 секунд. Сверь первый результат с
-              «Здоровьем».
-            </li>
-          </ol>
-          <p class="caption">
-            На Mac и iPhone нужен один iCloud Drive. Когда Mac выключен, импорт
-            возобновится при запуске RUNLOG. Команда читает последние 8 суток;
-            самый ранний неполный день исключается. Отсутствие образцов не
-            считается нулём шагов.
-          </p>
+        <div class="page-title"><div><div class="eyebrow">ИСТОЧНИКИ ДАННЫХ</div>
+          <h1>Подключения<span>.</span></h1><p>Запись с телефона через личного Telegram-бота.</p></div></div>
+        <article class="panel telegram-panel">
+          <h2>Подключить Telegram</h2>
+          <p id="telegram-connection">Бот пока не подключён.</p>
+          <form id="telegram-form" autocomplete="off">
+            <label class="field">Токен от BotFather
+              <input id="telegram-token" type="password" autocomplete="off" spellcheck="false" required placeholder="Токен остаётся на этом Mac" />
+            </label>
+            <button class="button primary" id="telegram-submit">Подключить бота</button>
+          </form>
+          <p id="telegram-setup-result" role="status"></p>
+          <p class="caption">Открой бота по появившейся ссылке и нажми «Начать». Доступ закрепится за твоим аккаунтом. RUNLOG запускает бота автоматически; Mac должен оставаться включённым и подключённым к интернету.</p>
+          <p class="caption">/run — таймер · /finish — финиш · /log 3,2 24:30 — запись без распознавания · фото дорожки — распознавание с подтверждением.</p>
         </article>
         <article class="panel">
-          <h2>Telegram</h2>
-          <p id="telegram-connection">
-            Для подключения запусти npm run setup:telegram на Mac, затем npm run
-            bot. Токен вводится локально.
-          </p>
-          <p class="caption">
-            Фото дорожки → распознанный черновик → подтверждение. /activity —
-            шаги, /summary — пробежки, /history — история.
-          </p>
+          <h2>Apple Health</h2>
+          <p>Если «Команды» вылетают даже на проверке одного образца, автоматический импорт пока недоступен. Запись пробежек через Telegram работает независимо от Health.</p>
+          <button type="button" class="button" id="sync-now">Проверить файл из iCloud</button>
+          <p class="caption">RUNLOG проверяет runlog-health.json в iCloud Drive / Shortcuts каждые 15 секунд. Файл также можно импортировать вручную через «Импорт XML / JSON». Данные без подтверждённого источника не складываются.</p>
+          <details class="setup-steps"><summary>Команда и диагностика</summary>
+            <p>Новая <a href="/downloads/health-sync.shortcut" download="RUNLOG Health Sync.shortcut">RUNLOG Health Sync v2</a> читает только сегодняшний день, без перебора каждого образца. Выполнение на iPhone ещё нужно проверить. Если Health Check тоже вылетает, не запускай команду повторно до проверки iOS и нативного действия «Найти образцы Здоровья».</p>
+          </details>
         </article>
       </section>
       <footer>
         <span>RUNLOG / ЛИЧНЫЙ ДНЕВНИК</span
-        ><span>v0.2 · Хранение на этом компьютере</span>
+        ><span>v0.3 · Хранение на этом компьютере</span>
       </footer>
     </main>
     <dialog id="workout-dialog">
@@ -277,12 +262,14 @@
                 rows="3"
                 placeholder="Сегодня пробежал 3 км за 23 минуты"
               ></textarea></label
-            ><button type="button" class="button primary full" id="recognize">
-              Распознать с Codex ↗
+            ><button type="button" class="button primary full" id="recognize-local">
+              Распознать на Mac
+            </button>
+            <button type="button" class="button full" id="recognize">
+              Распознать с ИИ ↗
             </button>
             <p class="caption">
-              Снимок и описание отправятся модели. Можно сразу заполнить поля
-              вручную.
+              На Mac текст распознаётся локально. Кнопка «с ИИ» отправляет снимок и описание модели. Показатели можно заполнить вручную.
             </p>
             <div id="recognition-status" role="status"></div>
           </div>

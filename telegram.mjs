@@ -14,6 +14,9 @@ import {
 import { activityReport } from "./activity.mjs";
 import { createHealthSync } from "./sync.mjs";
 import { parseWorkoutImport } from "./imports.mjs";
+import { dataDirectory } from "./config.mjs";
+import { runSession, elapsedSeconds, parseQuickRun } from "./run-session.mjs";
+import { recognizeLocally } from "./ocr.mjs";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 export function currentDate() {
@@ -29,7 +32,7 @@ const button = (text, action, id) => ({
   callback_data: `${action}:${id}`,
 });
 const HELP =
-  "RUNLOG\n\nОтправь фото дорожки или описание тренировки. Шаги и повседневная дистанция поступают через RUNLOG Health Sync на iPhone. Перед сохранением бот покажет показатели.\n\n/activity — шаги за 7 дней\n/summary — сводка за 30 дней\n/summary 7 — за неделю\n/history — последние тренировки\n/compare — две последние сопоставимые пробежки\n/photos — последние фото формы\n/export — выгрузить записи\n/cancel — отменить текущий черновик\n\nApple Health: можно отправить export.xml или JSON с массивом workouts. Файл сначала проверяется, импорт подтверждается отдельно.";
+  "RUNLOG\n\n/run — начать таймер пробежки\n/pause · /resume — пауза и продолжение\n/finish — закончить и указать дистанцию\n/log 3,2 24:30 — добавить 3,2 км за 24:30 без ИИ\n\nФото дорожки → распознавание → проверка → сохранение.\n/activity — шаги за 7 дней\n/summary — сводка за 30 дней\n/history — история\n/compare — сопоставимые пробежки\n/photos — фото формы\n/export — выгрузить записи\n/cancel — отменить ввод\n\nТаймер считает время между командами; GPS-дистанцию он не измеряет. Дневник работает, пока RUNLOG запущен на Mac.";
 
 export function createBotHandler({
   api,
@@ -38,6 +41,7 @@ export function createBotHandler({
   directory,
   agent = runAgent,
   today = currentDate,
+  now = () => Date.now(),
 }) {
   if (!/^\d+$/.test(String(ownerId || "")))
     throw new Error("Укажи TELEGRAM_OWNER_ID. Запусти npm run setup:telegram.");
@@ -79,6 +83,19 @@ export function createBotHandler({
   async function extract(chatId, draft, correction) {
     const p = draft.payload;
     await api.send(chatId, "Распознаю показатели…");
+    if (p.imageId && !correction && process.platform === "darwin") {
+      try {
+        const local = await recognizeLocally(store.imagePath(p.imageId), store.directory);
+        if (local.draft.distanceKm || local.draft.durationSeconds) {
+          const updated = store.changeDraft(draft.id, ownerId, {
+            kind: "workout", imageId: p.imageId,
+            workout: { ...local.draft, imageId: p.imageId },
+          });
+          await showDraft(chatId, updated);
+          return;
+        }
+      } catch { /* Model recognition remains an explicit workout action. */ }
+    }
     const text = correction
       ? `Исправь предыдущий черновик ${JSON.stringify(p.workout)}. Указание пользователя: ${correction}`
       : p.caption || "Распознай тренировку на снимке.";
@@ -122,6 +139,8 @@ export function createBotHandler({
     }
     if (store.hasUpdate(update.update_id)) return;
     const chatId = message.chat.id;
+    const eventTime = Number.isFinite(message.date) && message.date > 0
+      ? Math.min(now(), message.date * 1000) : now();
     try {
       if (callback) {
         await api.call("answerCallbackQuery", {
@@ -133,6 +152,8 @@ export function createBotHandler({
           throw new Error("Черновик не найден. Отправь снимок ещё раз.");
         if (action === "save") {
           const result = store.confirmDraft(id, ownerId);
+          if (draft.payload.runSessionId === store.getSetting("active_run")?.id)
+            runSession(store, "discard");
           store.setSetting(editingKey, null);
           await api.send(
             chatId,
@@ -186,6 +207,28 @@ export function createBotHandler({
         const text = String(message.text || "").trim();
         if (/^\/(start|help)(?:@\w+)?(?:\s|$)/.test(text))
           await api.send(chatId, HELP);
+        else if (/^\/log(?:@\w+)?(?:\s|$)/.test(text)) {
+          const workout = parseQuickRun(text, today());
+          const draft = store.createDraft(ownerId, { kind: "workout", workout }, `telegram:${update.update_id}`);
+          await showDraft(chatId, draft);
+        } else if (["/run", "/pause", "/resume", "/finish"].includes(text)) {
+          const action = { "/run": "start", "/pause": "pause", "/resume": "resume", "/finish": "finish" }[text];
+          const session = runSession(store, action, { now: eventTime, date: today() });
+          if (action === "finish") {
+            store.setSetting(`run_distance:${ownerId}`, session.id);
+            await api.send(chatId, `Таймер остановлен: ${formatTime(session.durationSeconds)}.\nСколько километров пробежал? Отправь число, например 3,2. Если дистанция неизвестна — /nodistance.`);
+          } else await api.send(chatId,
+            action === "start" ? "Таймер запущен. /pause — пауза, /finish — закончить. Телефон можно заблокировать: время сохранится."
+              : `${action === "pause" ? "Пауза" : "Продолжаем"}. Время: ${formatTime(session.durationSeconds)}.`,
+          );
+        } else if (text === "/runstatus") {
+          const session = store.getSetting("active_run");
+          await api.send(chatId, session ? `Пробежка: ${formatTime(elapsedSeconds(session, now()))}. ${session.status === "running" ? "Таймер идёт." : "Таймер остановлен."}` : "Активной пробежки нет. /run — начать.");
+        } else if (text === "/discardrun") {
+          runSession(store, "discard");
+          store.setSetting(`run_distance:${ownerId}`, null);
+          await api.send(chatId, "Незавершённая пробежка удалена. История сохранённых тренировок не изменена.");
+        }
         else if (text === "/activity")
           await api.send(
             chatId,
@@ -247,6 +290,7 @@ export function createBotHandler({
           const id = store.getSetting(editingKey);
           if (id) await store.cancelDraft(id, ownerId);
           store.setSetting(editingKey, null);
+          store.setSetting(`run_distance:${ownerId}`, null);
           await api.send(chatId, "Ввод исправлений отменён.");
         } else if (
           message.photo?.length ||
@@ -295,6 +339,22 @@ export function createBotHandler({
           );
           await showDraft(chatId, draft);
         } else if (text) {
+          const distanceSessionId = store.getSetting(`run_distance:${ownerId}`);
+          const session = store.getSetting("active_run");
+          if (distanceSessionId && session?.id === distanceSessionId &&
+              (text === "/nodistance" || /^\d+(?:[.,]\d+)?(?:\s*км)?$/.test(text))) {
+            const distanceKm = text === "/nodistance" ? null : Number(text.replace(/\s*км$/, "").replace(",", "."));
+            const workout = { date: session.date, sport: "run", distanceKm,
+              durationSeconds: elapsedSeconds(session, now()), avgHR: null,
+              notes: "Время по таймеру RUNLOG; дистанция введена вручную.", imageId: null };
+            const { validateWorkout } = await import("./core.mjs");
+            validateWorkout(workout);
+            const draft = store.createDraft(ownerId, { kind: "workout", workout, runSessionId: session.id });
+            store.setSetting(`run_distance:${ownerId}`, null);
+            await showDraft(chatId, draft);
+            store.markUpdate(update.update_id);
+            return;
+          }
           const editId = store.getSetting(editingKey),
             old = editId && store.getDraft(editId, ownerId);
           if (old?.status === "pending" && !text.startsWith("/")) {
@@ -337,16 +397,14 @@ export function createBotHandler({
   };
 }
 
-export async function startBot() {
+export async function startBot({ signal, onReady = () => {}, onError = () => {} } = {}) {
   const api = new TelegramAPI(process.env.TELEGRAM_BOT_TOKEN);
   const ownerId = process.env.TELEGRAM_OWNER_ID;
   if (!/^\d+$/.test(ownerId || ""))
     throw new Error(
       "Запусти npm run setup:telegram для настройки личного доступа.",
     );
-  const dataDir = path.resolve(
-    process.env.RUNLOG_DATA_DIR || path.join(root, "data"),
-  );
+  const dataDir = dataDirectory();
   await mkdir(dataDir, { recursive: true });
   const lockPath = path.join(dataDir, "telegram.lock");
   let lock;
@@ -376,8 +434,14 @@ export async function startBot() {
   const sync = createHealthSync({ store });
   sync.start();
   const stop = new AbortController();
-  for (const signal of ["SIGINT", "SIGTERM"])
-    process.once(signal, () => stop.abort());
+  if (signal?.aborted) stop.abort();
+  const abort = () => stop.abort();
+  signal?.addEventListener("abort", abort, { once: true });
+  const signalHandlers = ["SIGINT", "SIGTERM"].map(name => {
+    const handler = () => stop.abort();
+    process.once(name, handler);
+    return [name, handler];
+  });
   try {
     const me = await api.call("getMe"),
       webhook = await api.call("getWebhookInfo");
@@ -386,6 +450,7 @@ export async function startBot() {
         "У бота уже настроен webhook. Используй отдельного бота или отключи webhook самостоятельно.",
       );
     console.log(`RUNLOG Telegram: @${me.username}. Личный доступ настроен.`);
+    onReady(me);
     const handle = createBotHandler({ api, store, ownerId, directory });
     while (!stop.signal.aborted) {
       try {
@@ -398,6 +463,7 @@ export async function startBot() {
           },
           stop.signal,
         );
+        onReady(me);
         for (const update of updates) {
           if (stop.signal.aborted) break;
           await handle(update);
@@ -406,6 +472,7 @@ export async function startBot() {
       } catch (error) {
         if (stop.signal.aborted) break;
         console.error(error.message);
+        onError(error.message);
         if (error.message === "Telegram API 409")
           throw new Error(
             "Другой процесс получает обновления этого бота. Останови второй экземпляр.",
@@ -414,6 +481,8 @@ export async function startBot() {
       }
     }
   } finally {
+    for (const [name, handler] of signalHandlers) process.removeListener(name, handler);
+    signal?.removeEventListener("abort", abort);
     await sync.stop();
     store.close();
     await lock.close();

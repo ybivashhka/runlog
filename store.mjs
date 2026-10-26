@@ -7,7 +7,8 @@ import { dateOnly, imageBuffer, validateWorkout } from "./core.mjs";
 export async function createStore(directory) {
   await mkdir(path.join(directory, "images"), { recursive: true });
   const db = new DatabaseSync(path.join(directory, "diary.sqlite"));
-  db.exec(`PRAGMA journal_mode = WAL;
+  db.exec(`PRAGMA busy_timeout = 5000;
+    PRAGMA journal_mode = WAL;
     CREATE TABLE IF NOT EXISTS images (id TEXT PRIMARY KEY, filename TEXT NOT NULL, mime TEXT NOT NULL, hash TEXT NOT NULL UNIQUE);
     CREATE TABLE IF NOT EXISTS workouts (id TEXT PRIMARY KEY, date TEXT NOT NULL, sport TEXT NOT NULL, distanceKm REAL, durationSeconds REAL, avgHR REAL, notes TEXT, imageId TEXT UNIQUE);
     CREATE TABLE IF NOT EXISTS photos (id TEXT PRIMARY KEY, date TEXT NOT NULL, imageId TEXT NOT NULL UNIQUE, weightKg REAL, notes TEXT);
@@ -24,8 +25,8 @@ export async function createStore(directory) {
         .all()
         .map((r) => ({ ...r, partial: Boolean(r.partial) }));
     },
-    importActivity(batch) {
-      db.exec("BEGIN IMMEDIATE");
+    importActivity(batch, { transaction = true } = {}) {
+      if (transaction) db.exec("BEGIN IMMEDIATE");
       try {
         const previous = this.getSetting("health_sync");
         if (previous?.source && previous.source !== batch.source)
@@ -33,7 +34,7 @@ export async function createStore(directory) {
             "Источник активности изменился. Выбери прежний RUNLOG_HEALTH_SOURCE, чтобы не смешивать данные устройств.",
           );
         if (previous?.hash === batch.hash) {
-          db.exec("COMMIT");
+          if (transaction) db.exec("COMMIT");
           return { changed: false, days: 0 };
         }
         let days = 0;
@@ -71,10 +72,10 @@ export async function createStore(directory) {
             warnings: batch.warnings,
             hash: batch.hash,
           });
-        db.exec("COMMIT");
+        if (transaction) db.exec("COMMIT");
         return { changed: days > 0, days };
       } catch (error) {
-        db.exec("ROLLBACK");
+        if (transaction) db.exec("ROLLBACK");
         throw error;
       }
     },
@@ -177,6 +178,8 @@ export async function createStore(directory) {
         );
       } catch (error) {
         await unlink(path.join(directory, "images", filename)).catch(() => {});
+        const concurrent = db.prepare("SELECT * FROM images WHERE hash = ?").get(hash);
+        if (concurrent) return concurrent;
         throw error;
       }
       return { id, filename, mime, hash };
@@ -333,7 +336,10 @@ export async function createStore(directory) {
           result = this.saveWorkout(draft.payload.workout);
         else if (draft.payload.kind === "photo")
           result = this.savePhoto(draft.payload.photo);
-        else if (draft.payload.kind === "import") {
+        else if (draft.payload.kind === "activity") {
+          const imported = this.importActivity(draft.payload.batch, { transaction: false });
+          result = { id: randomUUID(), imported: imported.days, duplicates: 0, activity: true };
+        } else if (draft.payload.kind === "import") {
           let imported = 0,
             duplicates = 0;
           for (const workout of draft.payload.workouts) {
