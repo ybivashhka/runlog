@@ -46,6 +46,9 @@ export function validateWorkout(input) {
   };
   if (!result.distanceKm && !result.durationSeconds)
     throw new Error("Укажи дистанцию или длительность.");
+  if (result.sport === "run" && result.distanceKm && result.durationSeconds &&
+      result.durationSeconds / result.distanceKm < 60)
+    throw new Error("Проверь время и единицы дистанции: получается скорость бега больше 60 км/ч.");
   return result;
 }
 

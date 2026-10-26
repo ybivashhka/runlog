@@ -86,6 +86,7 @@ export async function callCodex({
     "--sandbox",
     "read-only",
     "--ephemeral",
+    "-c", 'model_reasoning_effort="low"',
     "--json",
     "--output-schema",
     schemaPath,
@@ -112,7 +113,9 @@ export async function callCodex({
         child.kill("SIGTERM");
         finish(
           new Error(
-            "Codex не ответил за 2 минуты. Попробуй ещё раз или внеси данные вручную.",
+            /429|quota|rate.?limit/i.test(errors)
+              ? "Достигнут лимит запросов Codex. Используй локальное распознавание или введи показатели вручную."
+              : "Codex не ответил вовремя. Используй локальное распознавание или введи показатели вручную.",
           ),
         );
       }, timeoutMs);
@@ -125,6 +128,10 @@ export async function callCodex({
       });
       child.stderr.on("data", (chunk) => {
         errors = (errors + chunk).slice(-4000);
+        if (/429|too many requests|quota exceeded|usage limit/i.test(errors)) {
+          child.kill("SIGTERM");
+          finish(new Error("Достигнут лимит запросов Codex. Используй локальное распознавание или введи показатели вручную."));
+        }
       });
       child.on("error", (error) =>
         finish(

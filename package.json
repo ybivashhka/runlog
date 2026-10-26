@@ -1,6 +1,6 @@
 {
   "name": "runlog-agent",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "Local sports diary with image extraction, an agent tool loop and SQLite storage.",

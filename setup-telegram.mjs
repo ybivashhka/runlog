@@ -110,7 +110,7 @@ export async function setupTelegram() {
   await writeFile(envPath, next, { mode: 0o600 });
   await chmod(envPath, 0o600);
   console.log(
-    "Готово. Запусти npm run bot. Доступ разрешён только выбранному Telegram-аккаунту.",
+    "Готово. Перезапусти npm start: дневник и бот запустятся вместе. Доступ разрешён только выбранному Telegram-аккаунту.",
   );
 }
 if (

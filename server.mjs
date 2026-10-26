@@ -10,6 +10,13 @@ import { summarize } from "./core.mjs";
 import { runAgent } from "./agent.mjs";
 import { parseWorkoutImport } from "./imports.mjs";
 import { createHealthSync } from "./sync.mjs";
+import { parseActivityImport } from "./activity.mjs";
+import { dataDirectory } from "./config.mjs";
+import { createTelegramConnection } from "./telegram-connection.mjs";
+import { runSession, elapsedSeconds } from "./run-session.mjs";
+import { recognizeLocally } from "./ocr.mjs";
+import { buildReport, buildHistory, compareWorkouts, latestComparablePair } from "./reports.mjs";
+import { activityReport } from "./activity.mjs";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const exec = promisify(execFile);
@@ -26,11 +33,13 @@ function today() {
 }
 
 export async function createApp({
-  dataDir = process.env.RUNLOG_DATA_DIR || path.join(root, "data"),
+  dataDir = dataDirectory(),
   model,
   syncFile,
+  telegram = true,
 } = {}) {
   const store = await createStore(dataDir);
+  const bot = telegram ? createTelegramConnection({ store }) : null;
   const healthSync = createHealthSync({
     store,
     ...(syncFile !== undefined ? { file: syncFile } : {}),
@@ -41,6 +50,18 @@ export async function createApp({
   const token = randomBytes(24).toString("hex"),
     jobs = new Map();
   let busy = false;
+  let codexStatus;
+  async function checkCodex() {
+    if (codexStatus && Date.now() - codexStatus.checked < 30000) return codexStatus.value;
+    let available = false, authenticated = false;
+    try {
+      const r = await exec(process.env.SPORT_CODEX_BIN || "codex", ["login", "status"], { timeout: 6000 });
+      available = true;
+      authenticated = /logged in/i.test(r.stdout + r.stderr);
+    } catch (e) { available = e.code !== "ENOENT"; }
+    codexStatus = { checked: Date.now(), value: { available, authenticated } };
+    return codexStatus.value;
+  }
   const send = (
     res,
     status,
@@ -95,23 +116,11 @@ export async function createApp({
       const url = new URL(req.url, `http://${host}`),
         p = url.pathname;
       if (req.method === "GET" && p === "/api/status") {
-        let available = false,
-          authenticated = false;
-        try {
-          const r = await exec(
-            process.env.SPORT_CODEX_BIN || "codex",
-            ["login", "status"],
-            { timeout: 6000 },
-          );
-          available = true;
-          authenticated = /logged in/i.test(r.stdout + r.stderr);
-        } catch (e) {
-          available = e.code !== "ENOENT";
-        }
         return send(res, 200, {
           token,
           today: today(),
-          codex: { available, authenticated },
+          codex: await checkCodex(),
+          telegram: bot?.state || { status: "disabled" },
           storage: "SQLite на этом компьютере",
           telegramUsername: /^[A-Za-z0-9_]+$/.test(
             process.env.TELEGRAM_BOT_USERNAME || "",
@@ -131,10 +140,41 @@ export async function createApp({
             ...healthSync.state,
             lastImport: store.getSetting("health_sync"),
           },
+          telegram: bot?.state || { status: "disabled" },
+          activeRun: store.getSetting("active_run") ? {
+            ...store.getSetting("active_run"),
+            durationSeconds: elapsedSeconds(store.getSetting("active_run")),
+          } : null,
         });
+      }
+      if (req.method === "POST" && p === "/api/telegram/connect") {
+        if (!bot) throw new Error("Telegram отключён в этом запуске.");
+        const body = await json(req);
+        return send(res, 200, await bot.pair(String(body.token || "").trim()));
+      }
+      if (req.method === "POST" && p === "/api/sync") {
+        await healthSync.scan();
+        return send(res, 200, healthSync.state);
+      }
+      if (req.method === "POST" && p === "/api/run") {
+        const body = await json(req);
+        return send(res, 200, { session: runSession(store, body.action, { date: today() }) });
       }
       if (req.method === "GET" && p === "/api/health")
         return send(res, 200, { ok: true });
+      if (req.method === "GET" && p === "/api/report") {
+        const type = url.searchParams.get("type");
+        const all = store.listWorkouts();
+        if (type === "history") return send(res, 200, buildHistory(all));
+        if (type === "progress") return send(res, 200, buildReport(all, { today: today(), days: 30 }));
+        if (type === "activity") return send(res, 200, activityReport(store.listActivity(), { today: today() }));
+        if (type === "compare") {
+          const pair = latestComparablePair(all);
+          if (!pair) return send(res, 200, { reply: "Нужны две пробежки с временем и разницей дистанций не больше 10%.", sourceCount: 0 });
+          return send(res, 200, compareWorkouts(all, ...pair));
+        }
+        throw new Error("Выбери историю, сводку, активность или сравнение.");
+      }
       if (req.method === "GET" && p === "/api/export")
         return send(res, 200, {
           version: 1,
@@ -149,6 +189,12 @@ export async function createApp({
         const image = await store.saveImage(body.dataUrl);
         return send(res, 201, { id: image.id });
       }
+      if (req.method === "POST" && p === "/api/recognize-local") {
+        const body = await json(req);
+        const imagePath = store.imagePath(body.imageId);
+        if (!imagePath) throw new Error("Добавь фото тренировки.");
+        return send(res, 200, await recognizeLocally(imagePath, dataDir));
+      }
       if (req.method === "GET" && /^\/images\/[\w-]+$/.test(p)) {
         const image = store.getImage(p.split("/").at(-1));
         if (!image) return send(res, 404, { error: "Фото не найдено." });
@@ -159,8 +205,13 @@ export async function createApp({
           image.mime,
         );
       }
-      if (req.method === "POST" && p === "/api/workouts")
-        return send(res, 201, store.saveWorkout(await json(req)));
+      if (req.method === "POST" && p === "/api/workouts") {
+        const body = await json(req);
+        const saved = store.saveWorkout(body);
+        if (body.runSessionId && body.runSessionId === store.getSetting("active_run")?.id)
+          runSession(store, "discard");
+        return send(res, 201, saved);
+      }
       if (req.method === "PUT" && /^\/api\/workouts\/[\w-]+$/.test(p))
         return send(
           res,
@@ -168,8 +219,14 @@ export async function createApp({
           await store.updateWorkout(p.split("/").at(-1), await json(req)),
         );
       if (req.method === "POST" && p === "/api/import") {
-        const body = await json(req),
-          parsed = parseWorkoutImport(body.text, body.filename);
+        const body = await json(req);
+        if (/runlog-health-v[12]/.test(String(body.text).slice(0, 500))) {
+          const batch = parseActivityImport(body.text);
+          const draft = store.createDraft("web", { kind: "activity", batch });
+          return send(res, 200, { id: draft.id, kind: "activity", count: batch.rows.length,
+            skipped: 0, errors: [], preview: batch.rows });
+        }
+        const parsed = parseWorkoutImport(body.text, body.filename);
         const draft = store.createDraft("web", { kind: "import", ...parsed });
         return send(res, 200, {
           id: draft.id,
@@ -279,18 +336,30 @@ export async function createApp({
       });
     }
   });
-  server.once("listening", () => healthSync.start());
-  server.on("close", () => healthSync.stop());
-  return { server, store, healthSync };
+  server.once("listening", () => { healthSync.start(); bot?.start(); });
+  server.on("close", () => { healthSync.stop(); bot?.stop(); });
+  async function close() {
+    await bot?.stop();
+    await healthSync.stop();
+    if (server.listening) await new Promise(resolve => server.close(resolve));
+    store.close();
+  }
+  return { server, store, healthSync, bot, close };
 }
 
 if (
   process.argv[1] &&
   path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 ) {
-  const { server } = await createApp();
+  const app = await createApp();
+  const { server } = app;
   const port = Number(process.env.SPORT_PORT || 8787);
   server.listen(port, "127.0.0.1", () =>
     console.log(`RUNLOG → http://127.0.0.1:${port}`),
   );
+  server.on("error", error => {
+    console.error(error.code === "EADDRINUSE" ? `Порт ${port} уже занят. Останови предыдущий RUNLOG.` : error.message);
+    app.close().finally(() => { process.exitCode = 1; });
+  });
+  for (const signal of ["SIGINT", "SIGTERM"]) process.once(signal, () => app.close());
 }
