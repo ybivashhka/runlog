@@ -7,6 +7,8 @@ const state = {
   imageId: null,
   photoImageId: null,
   busy: false,
+  runSessionId: null,
+  formVersion: 0,
 };
 const labels = {
   run: "Бег",
@@ -40,16 +42,26 @@ const duration = (value) =>
     ? "—"
     : `${Math.floor(value / 60)}:${String(Math.round(value) % 60).padStart(2, "0")}`;
 
-async function api(url, method = "GET", body) {
-  const result = await fetch(url, {
+async function api(url, method = "GET", body, timeoutMs = 45000) {
+  const request = () => fetch(url, {
     method,
     headers: {
       "Content-Type": "application/json",
       "X-Diary-Token": state.token,
     },
     ...(body ? { body: JSON.stringify(body) } : {}),
+    signal: AbortSignal.timeout(timeoutMs),
   });
-  const data = await result.json();
+  let result = await request();
+  let data = await result.json();
+  if (result.status === 403 && data.error === "Обнови страницу и повтори действие.") {
+    const statusResponse = await fetch("/api/status", { signal: AbortSignal.timeout(10000) });
+    if (statusResponse.ok) {
+      state.token = (await statusResponse.json()).token;
+      result = await request();
+      data = await result.json();
+    }
+  }
   if (!result.ok) throw new Error(data.error || "Не удалось выполнить запрос.");
   return data;
 }
@@ -90,6 +102,8 @@ async function refresh() {
 function render() {
   const { workouts, photos, summary } = state.diary;
   renderActivity();
+  renderRun();
+  renderTelegram();
   $("#stat-count").textContent = workouts.length;
   $("#stat-km").innerHTML = `${fmt(summary.totalKm || 0)} <em>км</em>`;
   $("#stat-pace").innerHTML = summary.averagePaceSeconds
@@ -222,9 +236,12 @@ async function ask(text, imageId, statusElement) {
   state.busy = true;
   $("#chat-send").disabled = true;
   $("#recognize").disabled = true;
+  $("#recognize-local").disabled = true;
   try {
     const { id } = await api("/api/agent", "POST", { text, imageId });
+    const deadline = Date.now() + 8 * 60 * 1000;
     while (true) {
+      if (Date.now() > deadline) throw new Error("Ответ задержался. Можно сохранить показатели вручную.");
       const job = await api(`/api/jobs/${id}`);
       setTrace(job.trace);
       if (statusElement) {
@@ -240,10 +257,13 @@ async function ask(text, imageId, statusElement) {
     state.busy = false;
     $("#chat-send").disabled = false;
     $("#recognize").disabled = false;
+    $("#recognize-local").disabled = false;
   }
 }
 
 $("#add-workout").addEventListener("click", () => {
+  state.formVersion++;
+  state.runSessionId = null;
   state.editingId = null;
   $("#workout-form").reset();
   state.imageId = null;
@@ -268,6 +288,7 @@ $("#workout-image").addEventListener("change", async () => {
   }
 });
 $("#workout-dialog").addEventListener("close", () => {
+  state.formVersion++;
   if (state.imageId) {
     api(`/api/image/${state.imageId}`, "DELETE").catch(() => {});
     state.imageId = null;
@@ -283,9 +304,14 @@ function fillDraft(draft) {
   $("#w-seconds").value =
     draft.durationSeconds == null ? "" : Math.round(draft.durationSeconds) % 60;
   $("#w-notes").value = draft.notes || "";
-  if (draft.imageId) state.imageId = draft.imageId;
+  if (draft.imageId) {
+    state.imageId = draft.imageId;
+    $("#workout-preview").src = `/images/${draft.imageId}`;
+    $("#workout-preview").hidden = false;
+  }
 }
 $("#recognize").addEventListener("click", async () => {
+  const version = state.formVersion;
   $("#workout-error").textContent = "";
   try {
     const file = $("#workout-image").files[0],
@@ -294,6 +320,7 @@ $("#recognize").addEventListener("click", async () => {
       throw new Error("Добавь снимок или описание тренировки.");
     if (file && !state.imageId) state.imageId = await upload(file);
     const result = await ask(text, state.imageId, $("#recognition-status"));
+    if (version !== state.formVersion || !$("#workout-dialog").open) return;
     $("#recognition-status").textContent =
       result.reply +
       (result.draft?.warnings?.length
@@ -304,7 +331,31 @@ $("#recognize").addEventListener("click", async () => {
         : "");
     if (result.draft) fillDraft(result.draft);
   } catch (e) {
-    $("#workout-error").textContent = e.message;
+    if (version === state.formVersion) $("#workout-error").textContent = e.message;
+  }
+});
+$("#recognize-local").addEventListener("click", async () => {
+  const version = state.formVersion;
+  if (state.busy) return;
+  const file = $("#workout-image").files[0];
+  $("#workout-error").textContent = "";
+  if (!file && !state.imageId) { $("#workout-error").textContent = "Добавь фото для локального распознавания."; return; }
+  state.busy = true;
+  for (const id of ["recognize-local", "recognize", "chat-send"]) $("#" + id).disabled = true;
+  $("#recognition-status").className = "status-note";
+  $("#recognition-status").textContent = "Читаю текст на Mac… Первый запуск может занять до минуты.";
+  try {
+    if (!state.imageId) state.imageId = await upload(file);
+    const result = await api("/api/recognize-local", "POST", { imageId: state.imageId }, 90000);
+    if (version !== state.formVersion || !$("#workout-dialog").open) return;
+    const date = $("#w-date").value;
+    fillDraft({ ...result.draft, date: result.draft.date || date });
+    $("#recognition-status").textContent = ["Распознанный текст:", result.text || "Текст не найден.",
+      "", ...result.draft.warnings, "Проверь дату и показатели перед сохранением."].join("\n");
+  } catch (error) { if (version === state.formVersion) $("#workout-error").textContent = error.message; }
+  finally {
+    state.busy = false;
+    for (const id of ["recognize-local", "recognize", "chat-send"]) $("#" + id).disabled = false;
   }
 });
 $("#workout-form").addEventListener("submit", async (event) => {
@@ -332,6 +383,7 @@ $("#workout-form").addEventListener("submit", async (event) => {
         avgHR: $("#w-hr").value,
         notes: $("#w-notes").value,
         imageId: state.imageId,
+        runSessionId: state.runSessionId,
       },
     );
     $("#workout-dialog").close();
@@ -358,6 +410,8 @@ $("#chat-form").addEventListener("submit", async (event) => {
         `Проверено по записям: ${result.evidence.sourceCount}. Расчёты выполнены приложением.`,
       );
     if (result.draft) {
+      state.formVersion++;
+      state.runSessionId = null;
       state.editingId = null;
       $("#workout-form").reset();
       state.imageId = null;
@@ -378,6 +432,15 @@ document.querySelectorAll("[data-question]").forEach((button) =>
   button.addEventListener("click", () => {
     $("#chat-input").value = button.dataset.question;
     $("#chat-form").requestSubmit();
+  }),
+);
+document.querySelectorAll("[data-report]").forEach(button =>
+  button.addEventListener("click", async () => {
+    try {
+      const report = await api(`/api/report?type=${button.dataset.report}`);
+      message(report.reply);
+      setTrace([{ type: "tool", label: `Отчёт по сохранённым записям: ${report.sourceCount}. Расчёты выполнены приложением.` }]);
+    } catch (error) { message(error.message, "error"); }
   }),
 );
 $("#add-photo").addEventListener("click", () => {
@@ -429,17 +492,11 @@ try {
     })
     .toUpperCase();
   $("#codex-status").textContent = status.codex.authenticated
-    ? "Codex подключён"
+    ? "Codex: вход выполнен"
     : status.codex.available
       ? "Нужен вход в Codex"
       : "Codex CLI не найден";
   $("#codex-status").classList.toggle("ready", status.codex.authenticated);
-  if (status.telegramUsername) {
-    const link = document.createElement("a");
-    link.href = `https://t.me/${status.telegramUsername}`;
-    link.textContent = `Открыть @${status.telegramUsername} ↗`;
-    $("#telegram-connection").replaceChildren(link);
-  }
   await refresh();
   setInterval(() => refresh().catch(() => {}), 15000);
 } catch (e) {
@@ -462,7 +519,7 @@ function renderActivity() {
     sync.error ||
     (last
       ? `Источник: ${last.source} · Экспорт ${new Date(last.generatedAt).toLocaleString("ru-RU")}. Шаги и дистанция ходьбы и бега; учитываются отдельно от тренировок.`
-      : "В разделе «Подключения» установи RUNLOG Health Sync на iPhone.");
+      : "Данные Health ещё не поступили. Подробности — в разделе «Подключения».");
   const rows = activity.slice(0, 7).reverse();
   $("#activity-days").innerHTML = rows.length
     ? rows
@@ -474,8 +531,10 @@ function renderActivity() {
     : '<p class="caption">Данные активности ещё не поступили.</p>';
 }
 $("#workout-list").addEventListener("click", (event) => {
+  state.runSessionId = null;
   const button = event.target.closest("[data-edit-workout]");
   if (!button) return;
+  state.formVersion++;
   const w = state.diary.workouts.find(
     (w) => w.id === button.dataset.editWorkout,
   );
@@ -500,7 +559,7 @@ $("#import-file").addEventListener("change", async (event) => {
     });
     if (
       !confirm(
-        `Импортировать ${draft.count} тренировок? Некорректных: ${draft.skipped}. Дубли будут пропущены.`,
+        draft.kind === "activity" ? `Импортировать активность за ${draft.count} дней? Дневные суммы обновятся без повторного сложения.` : `Импортировать ${draft.count} тренировок? Некорректных: ${draft.skipped}. Дубли будут пропущены.`,
       )
     )
       return;
@@ -513,3 +572,84 @@ $("#import-file").addEventListener("change", async (event) => {
     event.target.value = "";
   }
 });
+
+function renderTelegram() {
+  const connection = state.diary.telegram || {};
+  const names = { disconnected: 'Бот пока не подключён', connecting: 'Подключаем бота…',
+    pairing: 'Открой бота по ссылке ниже и нажми «Начать»', connected: 'Бот работает',
+    reconnecting: 'Восстанавливаем соединение с Telegram…', error: 'Не удалось подключить бота' };
+  $('#telegram-connection').textContent = (names[connection.status] || 'Telegram отключён') +
+    (connection.error ? `: ${connection.error}` : '');
+  $('#telegram-form').hidden = ['pairing', 'connecting', 'connected', 'reconnecting'].includes(connection.status);
+  if (connection.status === 'connected' && connection.username) {
+    const link = document.createElement('a');
+    link.href = `https://t.me/${connection.username}`;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = `Открыть @${connection.username} ↗`;
+    $('#telegram-setup-result').replaceChildren(link);
+  }
+}
+$('#telegram-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  $('#telegram-submit').disabled = true;
+  const token = $('#telegram-token').value.trim();
+  $('#telegram-token').value = '';
+  $('#telegram-setup-result').textContent = 'Проверяем бота…';
+  try {
+    const result = await api('/api/telegram/connect', 'POST', { token });
+    const link = document.createElement('a');
+    link.href = result.url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = `Открыть @${result.username} и нажать «Начать» ↗`;
+    $('#telegram-setup-result').replaceChildren(link);
+    await refresh();
+    const timer = setInterval(async () => {
+      try {
+        await refresh();
+        if (state.diary.telegram?.status !== 'pairing') clearInterval(timer);
+      } catch { clearInterval(timer); }
+    }, 2000);
+  } catch (error) { $('#telegram-setup-result').textContent = error.message; }
+  finally { $('#telegram-submit').disabled = false; }
+});
+$('#sync-now').addEventListener('click', async () => {
+  try { await api('/api/sync', 'POST', {}); await refresh(); toast('Проверка синхронизации завершена'); }
+  catch (error) { toast(error.message); }
+});
+
+function renderRun() {
+  const session = state.diary.activeRun;
+  $('#run-label').textContent = !session ? 'Готов к старту' :
+    { running: 'Пробежка идёт', paused: 'Пауза', finished: 'Пробежка завершена — сохрани результат' }[session.status];
+  $('#run-start').hidden = Boolean(session);
+  $('#run-pause').hidden = session?.status !== 'running';
+  $('#run-resume').hidden = session?.status !== 'paused';
+  $('#run-finish').hidden = !session;
+  $('#run-finish').textContent = session?.status === 'finished' ? 'Сохранить результат' : 'Финиш';
+  $('#run-discard').hidden = !session;
+  tickRun();
+}
+function tickRun() {
+  const session = state.diary.activeRun;
+  const seconds = session ? Math.max(0, Math.round((session.elapsedMs +
+    (session.status === 'running' ? Date.now() - session.resumedAt : 0)) / 1000)) : 0;
+  $('#run-clock').textContent = `${seconds >= 3600 ? Math.floor(seconds / 3600) + ':' : ''}${String(Math.floor(seconds / 60) % 60).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+}
+for (const action of ['start', 'pause', 'resume', 'finish', 'discard']) {
+  $('#run-' + action).addEventListener('click', async () => {
+    if (action === 'discard' && !confirm('Сбросить незавершённую пробежку?')) return;
+    try {
+      const { session } = await api('/api/run', 'POST', { action });
+      await refresh();
+      if (action === 'finish') {
+        $('#add-workout').click();
+        state.runSessionId = session.id;
+        fillDraft({ date: session.date, sport: 'run', durationSeconds: session.durationSeconds,
+          notes: 'Время по таймеру RUNLOG; дистанция введена вручную.' });
+      }
+    } catch (error) { toast(error.message); }
+  });
+}
+setInterval(tickRun, 1000);
